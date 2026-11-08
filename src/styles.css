@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------
+   Theme tokens
+   Colors are stored as `r g b` channels so Tailwind opacity modifiers
+   (bg-cc-primary/10, border-cc-overlay/10, ...) keep working.
+   ------------------------------------------------------------------ */
+
+:root,
+:root[data-cc-theme='light'],
+.cc-scope[data-cc-theme='light'],
+.cc-portal[data-cc-theme='light'] {
+  --cc-primary: 99 91 255;
+  --cc-primary-hover: 79 70 229;
+  --cc-on-primary: 255 255 255;
+  --cc-surface: 255 255 255;
+  --cc-surface-2: 248 249 252;
+  --cc-text: 24 24 32;
+  --cc-muted: 96 101 115;
+  --cc-subtle: 131 137 151;
+  --cc-overlay: 15 23 42;
+  --cc-scrim: 15 23 42;
+  --cc-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --cc-z: 999999;
+  color-scheme: light;
+}
+
+:root[data-cc-theme='dark'],
+.cc-scope[data-cc-theme='dark'],
+.cc-portal[data-cc-theme='dark'] {
+  --cc-primary: 167 160 255;
+  --cc-primary-hover: 186 180 255;
+  --cc-on-primary: 24 24 32;
+  --cc-surface: 20 20 27;
+  --cc-surface-2: 29 29 38;
+  --cc-text: 244 244 248;
+  --cc-muted: 166 168 181;
+  --cc-subtle: 128 131 148;
+  --cc-overlay: 255 255 255;
+  --cc-scrim: 0 0 0;
+  --cc-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --cc-z: 999999;
+  color-scheme: dark;
+}
+
+@keyframes cc-progress {
+  0% {
+    transform: translateX(-120%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+@layer base {
+  .cc-scope,
+  .cc-portal {
+    font-family: var(--cc-font);
+    color: rgb(var(--cc-text));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Minimal, scoped normalization. Tailwind preflight is disabled so the
+     package never touches the host application's global styles. */
+  .cc-scope :where(button, input, textarea, select),
+  .cc-portal :where(button, input, textarea, select) {
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    margin: 0;
+    background-color: transparent;
+    border-width: 0;
+    border-style: solid;
+    border-color: rgb(var(--cc-overlay) / 0.1);
+  }
+
+  .cc-scope :where(button),
+  .cc-portal :where(button) {
+    text-align: inherit;
+    cursor: pointer;
+  }
+
+  .cc-scope :where(button:disabled),
+  .cc-portal :where(button:disabled) {
+    cursor: not-allowed;
+  }
+
+  .cc-scope :where(textarea),
+  .cc-portal :where(textarea) {
+    border-radius: 0;
+  }
+
+  .cc-scope :where(input, textarea)::placeholder,
+  .cc-portal :where(input, textarea)::placeholder {
+    color: rgb(var(--cc-subtle));
+  }
+
+  .cc-scope :where(input[type='date']),
+  .cc-portal :where(input[type='date']) {
+    color-scheme: inherit;
+  }
+
+  /* Portal host: generates no box, only carries theme variables. */
+  .cc-portal {
+    display: contents;
+  }
+}
+
+@layer utilities {
+  .customScrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--cc-overlay) / 0.2) transparent;
+  }
+
+  .customScrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .customScrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .customScrollbar::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--cc-overlay) / 0.18);
+    border-radius: 9999px;
+  }
+
+  .customScrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(var(--cc-overlay) / 0.3);
+  }
+
+  .cc-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+  }
+
+  .cc-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 9999px;
+    background: rgb(var(--cc-primary));
+    border: 2px solid rgb(var(--cc-surface));
+    box-shadow: 0 1px 4px rgb(var(--cc-scrim) / 0.25);
+    cursor: pointer;
+  }
+
+  .cc-slider::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 9999px;
+    background: rgb(var(--cc-primary));
+    border: 2px solid rgb(var(--cc-surface));
+    cursor: pointer;
+  }
+
+  .cc-slider:disabled::-webkit-slider-thumb,
+  .cc-slider:disabled::-moz-range-thumb {
+    background: rgb(var(--cc-muted));
+    cursor: not-allowed;
+  }
+}
