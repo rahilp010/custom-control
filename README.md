@@ -1,12 +1,21 @@
-# @rahilp010/custom-control
+# React Custom Controls — @rahilp010/custom-control
 
-Reusable, accessible, and themeable React form controls and UI components built with Tailwind CSS and Framer Motion. Inspired by **React Suite (rsuite)** design patterns, featuring dark/light modes, customizable palette tokens, and keyboard accessibility.
+[![npm version](https://img.shields.io/npm/v/@rahilp010/custom-control.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/@rahilp010/custom-control)
+[![npm downloads](https://img.shields.io/npm/dm/@rahilp010/custom-control.svg?style=flat-square&color=success)](https://www.npmjs.com/package/@rahilp010/custom-control)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@rahilp010/custom-control?style=flat-square&color=informational)](https://bundlephobia.com/package/@rahilp010/custom-control)
+[![types included](https://img.shields.io/badge/types-included-blue.svg?style=flat-square)](https://www.npmjs.com/package/@rahilp010/custom-control)
+[![license](https://img.shields.io/npm/l/@rahilp010/custom-control.svg?style=flat-square)](https://github.com/rahilp010/custom-control/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/rahilp010/custom-control.svg?style=flat-square)](https://github.com/rahilp010/custom-control)
 
-- 🌗 **Dark & light themes** out of the box (`theme="dark" | "light" | "system"`)
-- 🎨 **Custom colors** — override the accent or surface palette using hex, RGB, or CSS variables
-- 🪶 **Zero CSS reset conflicts** — fully isolated CSS variable tokens
-- ♿ **Comprehensive keyboard support** across all pickers, inputs, modals, and suggestion menus
-- 🚀 **Next.js & Remix ready** — SSR-safe portalled overlays
+> **React Custom Controls** (`@rahilp010/custom-control`) is a modern, lightweight, accessible, and fully themeable React UI & form controls library. Inspired by **React Suite (rsuite)** design patterns and built on **Tailwind CSS** and **Framer Motion**, it provides 30+ reusable custom controls including select pickers, date pickers, range pickers, time pickers, inputs, modals, toasts, toggles, OTP inputs, and tooltips.
+
+- 🌗 **Dark & Light Themes** out of the box (`theme="dark" | "light" | "system"`)
+- 🎨 **Custom Color Palette** — customize the accent or surface palette using hex, RGB, or CSS variables
+- 🪶 **Zero CSS Reset Conflicts** — clean, scoped CSS variable tokens with no forced global resets
+- ♿ **Full Keyboard Accessibility** — complete arrow navigation, Escape to close, Enter to select (rsuite standard)
+- 📦 **TypeScript Support** — bundled `.d.ts` declarations with full autocomplete
+- 🚀 **Next.js & Remix Ready** — SSR-safe portalled overlays (App Router & Pages Router compatible)
+- ⚡ **Ultra-Lightweight** — ~19.8 kB gzipped for 30+ production-ready form controls
 
 ---
 
@@ -1576,6 +1585,32 @@ function Example() {
 ## Server Rendering (SSR)
 
 All popovers, modals, and tooltips render via a portal (`ThemedPortal`) guarded against `window`/`document` references. The package is safe to import directly in Next.js (App Router or Pages Router), Remix, and Vite SSR setups.
+
+## Frequently Asked Questions (FAQ)
+
+### What makes `@rahilp010/custom-control` different from other libraries?
+Unlike heavy UI suites, `@rahilp010/custom-control` focuses specifically on high-frequency form controls and pickers. It bundles 30+ components in under **20 kB gzipped**, avoids destructive global CSS resets, adheres to **React Suite (rsuite)** keyboard accessibility paradigms, and includes animated micro-interactions powered by Framer Motion.
+
+### Do I need to have Tailwind CSS installed in my project?
+No. The library compiles all required styles into a single standalone stylesheet (`@rahilp010/custom-control/styles.css`). Your application does not need Tailwind CSS or PostCSS configured.
+
+### Does it support Server-Side Rendering (SSR) in Next.js?
+Yes. All dropdown overlays, pickers, tooltips, and modals render through an SSR-safe `ThemedPortal` that safely guards against `document` and `window` accesses during server evaluation.
+
+### How do I customize primary brand colors?
+Pass a `colors` object to `CustomControlsProvider`. The library will automatically calculate hover tones, contrast foreground colors, and focus ring opacities:
+```jsx
+<CustomControlsProvider theme="dark" colors={{ primary: '#8b5cf6' }}>
+  <App />
+</CustomControlsProvider>
+```
+
+---
+
+## Contributing & Issues
+
+Contributions, suggestions, and feature requests are welcome!
+Feel free to open an issue or pull request on [GitHub](https://github.com/rahilp010/custom-control).
 
 ---
 
