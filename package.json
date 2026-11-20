@@ -1,7 +1,7 @@
 {
   "name": "@rahilp010/custom-control",
-  "version": "1.1.1",
-  "description": "React Custom Controls - Reusable, accessible, and themeable React form controls and UI component library. Includes custom select picker, date picker, inputs, toggle, modal, combobox, and more with dark/light mode.",
+  "version": "1.2.0",
+  "description": "React Custom Controls - Reusable, accessible, and themeable React form controls and UI component library. Includes custom select picker, date picker, inputs, toggle, modal, combobox, tabs, drawer, pagination, accordion, and more with dark/light mode.",
   "publishConfig": {
     "access": "public"
   },
@@ -41,6 +41,20 @@
     "otp-input",
     "input-number",
     "number-input",
+    "tabs",
+    "drawer",
+    "sheet",
+    "pagination",
+    "accordion",
+    "badge",
+    "tag",
+    "chip",
+    "dropdown-menu",
+    "avatar",
+    "rate",
+    "rating",
+    "button-group",
+    "divider",
     "button",
     "input",
     "textbox",
@@ -101,7 +115,9 @@
     "**/*.css"
   ],
   "scripts": {
+    "dev": "vite",
     "build": "vite build && node scripts/postbuild.mjs",
+    "build:demo": "vite build --config vite.demo.config.js",
     "size": "size-limit",
     "prepublishOnly": "npm run build && npm run size"
   },
@@ -110,13 +126,13 @@
       "name": "ESM bundle (gzip)",
       "path": "dist/index.js",
       "gzip": true,
-      "limit": "20 kB"
+      "limit": "35 kB"
     },
     {
       "name": "Stylesheet (gzip)",
       "path": "dist/custom-control.css",
       "gzip": true,
-      "limit": "6 kB"
+      "limit": "10 kB"
     }
   ],
   "peerDependencies": {

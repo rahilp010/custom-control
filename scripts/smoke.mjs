@@ -26,6 +26,19 @@ const expectedExports = [
     'Modal',
     'Uploader',
     'Animation',
+    'Tabs',
+    'Drawer',
+    'Badge',
+    'Tag',
+    'Chip',
+    'Pagination',
+    'DropdownMenu',
+    'Accordion',
+    'Divider',
+    'Rate',
+    'ButtonGroup',
+    'Avatar',
+    'AvatarGroup',
     'CustomControlsProvider',
     'ThemeProvider',
     'useControlsTheme',
@@ -62,7 +75,14 @@ const html = renderToStaticMarkup(
             el(lib.Checkbox, { checked: true, onChange: () => {} }, 'C'),
             el(lib.Tooltip, { content: 'hi' }, el('button', null, 't')),
             el(lib.Modal, { open: true }, el(lib.Modal.Body, null, 'modal body')),
-            el(lib.Uploader, null, el('div', null, 'drop'))
+            el(lib.Uploader, null, el('div', null, 'drop')),
+            el(lib.Badge, { count: 5 }, el('button', null, 'Inbox')),
+            el(lib.Tag, { closable: true }, 'Tag1'),
+            el(lib.Pagination, { activePage: 1, total: 100, limit: 10 }),
+            el(lib.Divider, null, 'OR'),
+            el(lib.Rate, { value: 4 }),
+            el(lib.ButtonGroup, null, el('button', null, 'A'), el('button', null, 'B')),
+            el(lib.Avatar, { name: 'Rahil Patel' })
         )
     )
 )

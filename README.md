@@ -7,15 +7,17 @@
 [![license](https://img.shields.io/npm/l/@rahilp010/custom-control.svg?style=flat-square)](https://github.com/rahilp010/custom-control/blob/main/LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/rahilp010/custom-control.svg?style=flat-square)](https://github.com/rahilp010/custom-control)
 
-> **React Custom Controls** (`@rahilp010/custom-control`) is a modern, lightweight, accessible, and fully themeable React UI & form controls library. Inspired by **React Suite (rsuite)** design patterns and built on **Tailwind CSS** and **Framer Motion**, it provides 30+ reusable custom controls including select pickers, date pickers, range pickers, time pickers, inputs, modals, toasts, toggles, OTP inputs, and tooltips.
+> **React Custom Controls** (`@rahilp010/custom-control`) is a modern, lightweight, accessible, and fully themeable React UI & form controls library. Inspired by **React Suite (rsuite)** design patterns and built on **Tailwind CSS** and **Framer Motion**, it provides 40+ reusable custom controls including select pickers, date pickers, range pickers, time pickers, tabs, drawers, pagination, dropdown menus, accordions, badges, tags, avatars, star ratings, inputs, modals, toasts, toggles, OTP inputs, and tooltips.
 
 - 🌗 **Dark & Light Themes** out of the box (`theme="dark" | "light" | "system"`)
 - 🎨 **Custom Color Palette** — customize the accent or surface palette using hex, RGB, or CSS variables
+- 📋 **HTML Form & Server Actions Ready** — native `name` prop and hidden inputs for effortless FormData extraction
+- 📏 **Universal Size Prop** — uniform `'sm' | 'md' | 'lg'` scaling across all inputs, pickers, and buttons
 - 🪶 **Zero CSS Reset Conflicts** — clean, scoped CSS variable tokens with no forced global resets
 - ♿ **Full Keyboard Accessibility** — complete arrow navigation, Escape to close, Enter to select (rsuite standard)
 - 📦 **TypeScript Support** — bundled `.d.ts` declarations with full autocomplete
 - 🚀 **Next.js & Remix Ready** — SSR-safe portalled overlays (App Router & Pages Router compatible)
-- ⚡ **Ultra-Lightweight** — ~19.8 kB gzipped for 30+ production-ready form controls
+- ⚡ **Ultra-Lightweight** — ~29 kB gzipped for 40+ production-ready form controls & components
 
 ---
 
@@ -23,6 +25,7 @@
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Interactive Demo Showcase](#interactive-demo-showcase)
 - [Theming & Provider](#theming--provider)
   - [CustomControlsProvider](#customcontrolsprovider)
   - [Color Tokens](#color-tokens)
@@ -47,7 +50,18 @@
   - [Slider](#slider)
   - [ColorPicker](#colorpicker)
   - [Button](#button)
+  - [ButtonGroup](#buttongroup)
   - [Modal](#modal)
+  - [Drawer](#drawer)
+  - [Tabs](#tabs)
+  - [Pagination](#pagination)
+  - [DropdownMenu](#dropdownmenu)
+  - [Accordion](#accordion)
+  - [Badge](#badge)
+  - [Tag & Chip](#tag--chip)
+  - [Rate](#rate)
+  - [Avatar & AvatarGroup](#avatar--avatargroup)
+  - [Divider](#divider)
   - [Tooltip & Whisper](#tooltip--whisper)
   - [Alert](#alert)
   - [Toast & ToastProvider](#toast--toastprovider)
@@ -56,6 +70,8 @@
   - [FormField & Label](#formfield--label)
   - [Uploader](#uploader)
   - [Animation](#animation)
+- [Server Rendering (SSR)](#server-rendering-ssr)
+- [Frequently Asked Questions (FAQ)](#frequently-asked-questions-faq)
 - [License](#license)
 
 ---
@@ -140,6 +156,21 @@ export default function App() {
 
 ---
 
+## Interactive Demo Showcase
+
+A complete interactive demo application is included in this repository. It showcases all 40+ components with live customizer controls (theme switcher, accent color swatches, size presets, and dynamic code generators).
+
+```bash
+# Start the live interactive demo locally
+npm run dev
+
+# Or build static production demo
+npm run build:demo
+```
+Once started, open `http://localhost:5173` in your browser.
+
+---
+
 ## Theming & Provider
 
 ### CustomControlsProvider
@@ -196,7 +227,7 @@ When overriding `colors`, hover, foreground contrast, and focus rings derive aut
 
 ### Input
 
-Single-line text input control with focus rings and disabled styling.
+Single-line text input control with universal sizing, clearable button, prefixes/suffixes, and native form compatibility.
 
 #### How to Use
 
@@ -206,7 +237,23 @@ import { Input } from '@rahilp010/custom-control'
 
 function Example() {
   const [val, setVal] = useState('')
-  return <Input value={val} onChange={setVal} placeholder="Enter username..." />
+
+  return (
+    <div className="space-y-3">
+      {/* Basic Controlled */}
+      <Input value={val} onChange={setVal} placeholder="Enter username..." />
+
+      {/* Clearable with Prefix Icon and Size */}
+      <Input
+        defaultValue="rahil@example.com"
+        name="email"
+        size="lg"
+        clearable
+        prefix={<span>📧</span>}
+        placeholder="Email address"
+      />
+    </div>
+  )
 }
 ```
 
@@ -214,8 +261,14 @@ function Example() {
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `value` | `string` | `''` | Input value. |
+| `value` | `string \| number` | `undefined` | Controlled input value. |
+| `defaultValue` | `string \| number` | `''` | Initial value for uncontrolled usage (e.g. native HTML forms / Server Actions). |
 | `onChange` | `(value: string, event: ChangeEvent) => void` | `undefined` | Callback fired on input change. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Height & padding variant (`sm` = 36px, `md` = 44px, `lg` = 48px). |
+| `name` | `string` | `undefined` | HTML `name` attribute for native `<form>` submissions and FormData extraction. |
+| `clearable` | `boolean` | `false` | When true, renders a clean `✕` button to instantly clear text. |
+| `prefix` | `ReactNode` | `undefined` | Leading icon, addon, or currency symbol inside the input border. |
+| `suffix` | `ReactNode` | `undefined` | Trailing icon or addon placed before clear button. |
 | `placeholder` | `string` | `undefined` | Placeholder text. |
 | `type` | `string` | `'text'` | HTML input type (`'text'`, `'email'`, `'url'`, etc.). |
 | `disabled` | `boolean` | `false` | Whether input is disabled. |
@@ -227,12 +280,13 @@ function Example() {
 | :--- | :--- | :--- |
 | `Enter` | Submit | Submits enclosing form if inside a `<form>` element. |
 | `Tab` | Focus / Blur | Navigates into and out of the text field. |
+| `Escape` | Clear | Clears input when clearable button is focused. |
 
 ---
 
 ### InputGroup
 
-Grouped container allowing addons, buttons, or icons to be placed alongside inputs.
+Grouped container allowing addons, buttons, or icons to be placed alongside inputs with unified sizing.
 
 #### How to Use
 
@@ -241,7 +295,7 @@ import { InputGroup, Input } from '@rahilp010/custom-control'
 
 function Example() {
   return (
-    <InputGroup>
+    <InputGroup size="md">
       <InputGroup.Button onClick={() => alert('Search clicked!')}>
         🔍
       </InputGroup.Button>
@@ -255,6 +309,7 @@ function Example() {
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Sizing applied across group components. |
 | `children` | `ReactNode` | `undefined` | Child elements (`Input`, `InputGroup.Button`, etc.). |
 | `className` | `string` | `''` | Custom CSS class names. |
 
@@ -270,7 +325,7 @@ function Example() {
 
 ### InputNumber
 
-Controlled decimal and integer numeric input with bounds clamping, custom formatting, and prefix support.
+Controlled decimal and integer numeric input with bounds clamping, custom formatting, universal sizing, and native form support.
 
 #### How to Use
 
@@ -283,8 +338,10 @@ function Example() {
 
   return (
     <InputNumber
+      name="price"
       value={price}
       onChange={setPrice}
+      size="md"
       min={0}
       max={100}
       prefix="$"
@@ -299,8 +356,11 @@ function Example() {
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `value` | `number \| string` | `''` | Numeric value. |
+| `value` | `number \| string` | `undefined` | Controlled numeric value. |
+| `defaultValue` | `number \| string` | `''` | Uncontrolled default numeric value for HTML forms. |
 | `onChange` | `(value: number \| '') => void` | `undefined` | Callback fired when value changes. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Height variant (`sm` = 36px, `md` = 44px, `lg` = 48px). |
+| `name` | `string` | `undefined` | HTML `name` attribute for FormData and native form submissions. |
 | `min` | `number` | `undefined` | Minimum allowed value (clamped on blur). |
 | `max` | `number` | `undefined` | Maximum allowed value (clamped on blur). |
 | `step` | `number \| 'any'` | `'any'` | Step value. |
@@ -373,7 +433,7 @@ function Example() {
 
 ### PasswordInput
 
-Secure input field featuring a toggle button to reveal or conceal passwords.
+Secure input field featuring a toggle button to reveal or conceal passwords, sizing, and form compatibility.
 
 #### How to Use
 
@@ -386,8 +446,10 @@ function Example() {
 
   return (
     <PasswordInput
+      name="password"
       value={pass}
       onChange={setPass}
+      size="md"
       placeholder="Enter password"
       showToggle
     />
@@ -399,8 +461,11 @@ function Example() {
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `value` | `string` | `''` | Password string. |
+| `value` | `string` | `undefined` | Controlled password string. |
+| `defaultValue` | `string` | `''` | Default uncontrolled value for HTML form integration. |
 | `onChange` | `(value: string, event: ChangeEvent) => void` | `undefined` | Change callback. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Height variant (`sm` = 36px, `md` = 44px, `lg` = 48px). |
+| `name` | `string` | `undefined` | HTML `name` attribute for native form submission. |
 | `placeholder` | `string` | `'Password'` | Placeholder text. |
 | `showToggle` | `boolean` | `true` | Shows/hides visibility toggle button icon. |
 | `visible` | `boolean` | `undefined` | Controlled password visibility state. |
@@ -418,7 +483,7 @@ function Example() {
 
 ### SearchInput
 
-Search field with magnifying glass icon and clear button.
+Search field with magnifying glass icon, clear button, universal sizing, and native form support.
 
 #### How to Use
 
@@ -431,8 +496,10 @@ function Example() {
 
   return (
     <SearchInput
+      name="q"
       value={search}
       onChange={setSearch}
+      size="md"
       onClear={() => console.log('Cleared')}
       placeholder="Search products..."
       cleanable
@@ -445,8 +512,11 @@ function Example() {
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `value` | `string` | `''` | Search query value. |
+| `value` | `string` | `undefined` | Controlled search query value. |
+| `defaultValue` | `string` | `''` | Default uncontrolled search query for native forms. |
 | `onChange` | `(value: string, event: ChangeEvent \| null) => void` | `undefined` | Callback on search query change. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Height variant (`sm` = 36px, `md` = 44px, `lg` = 48px). |
+| `name` | `string` | `undefined` | HTML `name` attribute. |
 | `onClear` | `() => void` | `undefined` | Callback fired when the clear button (`✕`) is clicked. |
 | `cleanable` | `boolean` | `true` | Displays clear button when field contains text. |
 | `placeholder` | `string` | `'Search...'` | Input placeholder. |
@@ -516,7 +586,7 @@ function Example() {
 
 ### SelectPicker
 
-Searchable single-select dropdown picker supporting custom menu item rendering and extra footer actions.
+Searchable single-select dropdown picker supporting async search, option grouping (`groupBy`), dynamic item creation (`creatable`), universal sizing, and native form integration.
 
 #### How to Use
 
@@ -525,9 +595,10 @@ import { useState } from 'react'
 import { SelectPicker } from '@rahilp010/custom-control'
 
 const data = [
-  { label: 'React', value: 'react' },
-  { label: 'Vue', value: 'vue' },
-  { label: 'Svelte', value: 'svelte' }
+  { label: 'React', value: 'react', group: 'Frontend' },
+  { label: 'Vue', value: 'vue', group: 'Frontend' },
+  { label: 'Node.js', value: 'node', group: 'Backend' },
+  { label: 'Go', value: 'go', group: 'Backend' }
 ]
 
 function Example() {
@@ -535,13 +606,16 @@ function Example() {
 
   return (
     <SelectPicker
+      name="framework"
       data={data}
       value={val}
       onChange={setVal}
-      placeholder="Select framework"
+      groupBy="group"
+      size="md"
+      creatable
       searchable
       cleanable
-      onCreateNew={() => alert('New item')}
+      placeholder="Select framework"
     />
   )
 }
@@ -553,7 +627,14 @@ function Example() {
 | :--- | :--- | :--- | :--- |
 | `data` | `Array<{ label: string, value: any, [key: string]: any }>` | `[]` | List of selectable options. |
 | `value` | `any` | `undefined` | Controlled value matching option `value`. |
+| `defaultValue` | `any` | `undefined` | Uncontrolled default value for HTML forms. |
 | `onChange` | `(value: any, item: object) => void` | `undefined` | Fired when an option is selected. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Height variant (`sm` = 36px, `md` = 44px, `lg` = 48px). |
+| `name` | `string` | `undefined` | HTML `name` attribute rendered as hidden `<input>` for native form compatibility. |
+| `groupBy` | `string \| ((item: object) => string)` | `undefined` | Groups options under sticky category headers (e.g. `'group'` or `item => item.category`). |
+| `creatable` | `boolean` | `false` | When true and search doesn't match an exact option, allows user to create the typed option on Enter. |
+| `loading` | `boolean` | `false` | Displays a loading spinner indicator in the search header for async lookups. |
+| `onSearch` | `(query: string) => void` | `undefined` | Async search callback triggered on query input. |
 | `placeholder` | `string` | `'Select...'` | Placeholder text. |
 | `searchable` | `boolean` | `true` | Enables search filtering inside dropdown menu. |
 | `cleanable` | `boolean` | `true` | Shows clear button (`✕`) to unselect current value. |
@@ -580,7 +661,7 @@ function Example() {
 | `Enter` / `ArrowDown` / `ArrowUp` | Open Menu | When trigger is focused, opens dropdown menu. |
 | `ArrowDown` | Next Option | Highlights next item in menu (loops to start; includes footer). |
 | `ArrowUp` | Previous Option | Highlights previous item in menu (loops to bottom). |
-| `Enter` | Select Option | Selects the highlighted option and closes menu. |
+| `Enter` | Select Option | Selects the highlighted option and closes menu (or creates new when `creatable`). |
 | `Escape` | Close Menu | Closes dropdown menu without changing value. |
 | Typing in search | Filter | Filters options in real-time. |
 
@@ -588,7 +669,7 @@ function Example() {
 
 ### CheckPicker / TagPicker
 
-Multi-select searchable dropdown picker with checkboxes. `TagPicker` is an alias of `CheckPicker`.
+Multi-select searchable dropdown picker with checkboxes, async search, grouping, and removable tag chips (`tagDisplay`). `TagPicker` is an alias of `CheckPicker`.
 
 #### How to Use
 
@@ -597,20 +678,24 @@ import { useState } from 'react'
 import { CheckPicker, TagPicker } from '@rahilp010/custom-control'
 
 const skills = [
-  { label: 'JavaScript', value: 'js' },
-  { label: 'TypeScript', value: 'ts' },
-  { label: 'Python', value: 'py' },
-  { label: 'Rust', value: 'rust' }
+  { label: 'JavaScript', value: 'js', group: 'Languages' },
+  { label: 'TypeScript', value: 'ts', group: 'Languages' },
+  { label: 'React', value: 'react', group: 'Frameworks' },
+  { label: 'Vue', value: 'vue', group: 'Frameworks' }
 ]
 
 function Example() {
-  const [selected, setSelected] = useState(['js'])
+  const [selected, setSelected] = useState(['js', 'react'])
 
   return (
     <CheckPicker
+      name="skills"
       data={skills}
       value={selected}
       onChange={setSelected}
+      groupBy="group"
+      tagDisplay
+      size="md"
       placeholder="Select skills..."
       searchable
     />
@@ -623,8 +708,15 @@ function Example() {
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `data` | `Array<{ label: string, value: any }>` | `[]` | Selectable options. |
-| `value` | `any[]` | `[]` | Array of selected values. |
+| `value` | `any[]` | `undefined` | Array of selected values (controlled). |
+| `defaultValue` | `any[]` | `[]` | Uncontrolled default values for HTML form submission. |
 | `onChange` | `(values: any[]) => void` | `undefined` | Callback fired on selection change. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Height variant (`sm` = 36px, `md` = 44px, `lg` = 48px). |
+| `name` | `string` | `undefined` | HTML `name` attribute rendered as hidden `<input>` with serialized JSON for forms. |
+| `groupBy` | `string \| ((item: object) => string)` | `undefined` | Groups options under sticky category headers. |
+| `tagDisplay` | `boolean` | `false` | When true, renders selected values as interactive tag chips directly inside the trigger. |
+| `loading` | `boolean` | `false` | Shows loading spinner during async data fetches. |
+| `onSearch` | `(query: string) => void` | `undefined` | Async search callback fired on query input. |
 | `placeholder` | `string` | `'Select...'` | Empty selection placeholder text. |
 | `searchable` | `boolean` | `true` | Enables search filtering input in menu. |
 | `disabled` | `boolean` | `false` | Disables picker trigger. |
@@ -756,7 +848,7 @@ function Example() {
 
 ### DatePicker
 
-Interactive calendar dropdown date picker supporting ISO strings (`yyyy-MM-dd`), quick "Today" selection, and clear button.
+Interactive calendar dropdown date picker supporting ISO strings (`yyyy-MM-dd`), quick preset shortcuts (`shortcuts`), disabled date rules (`disabledDate`), universal sizing, and native HTML form submission.
 
 #### How to Use
 
@@ -769,13 +861,17 @@ function Example() {
 
   return (
     <DatePicker
+      name="birthDate"
       value={date}
-      onChange={(formatted, dateObj) => {
-        console.log('Selected:', formatted, dateObj)
-        setDate(formatted)
-      }}
+      onChange={(formatted, dateObj) => setDate(formatted)}
+      size="md"
       placeholder="Select birth date"
       cleanable
+      shortcuts={[
+        { label: 'Today', value: new Date() },
+        { label: 'Yesterday', value: () => new Date(Date.now() - 86400000) }
+      ]}
+      disabledDate={(d) => d > new Date()} // Disable future dates
     />
   )
 }
@@ -785,8 +881,13 @@ function Example() {
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `value` | `string \| Date` | `''` | Selected date (`'yyyy-MM-dd'` string or `Date` object). |
+| `value` | `string \| Date \| null` | `undefined` | Selected date (`'yyyy-MM-dd'` string or `Date` object). |
+| `defaultValue` | `string \| Date \| null` | `''` | Default uncontrolled date for native form submission. |
 | `onChange` | `(formatted: string, date: Date \| null) => void` | `undefined` | Fired when date is selected or cleared. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Height variant (`sm` = 36px, `md` = 44px, `lg` = 48px). |
+| `name` | `string` | `undefined` | HTML `name` attribute rendered as hidden `<input>` for native forms. |
+| `shortcuts` | `Array<{ label: string, value: Date \| (() => Date) }>` | `undefined` | Quick preset buttons displayed above or beside the calendar. |
+| `disabledDate` | `(date: Date) => boolean` | `undefined` | Function to disable specific dates (e.g. past dates, weekends, or holidays). |
 | `placeholder` | `string` | `'Select Date'` | Trigger placeholder text. |
 | `format` | `string` | `'yyyy-MM-dd'` | Output date format. |
 | `cleanable` | `boolean` | `true` | Enables clear button (`✕`) when date is selected. |
@@ -805,14 +906,14 @@ function Example() {
 | Key | Operation | Description |
 | :--- | :--- | :--- |
 | `Enter` / `Space` | Open / Pick | Opens calendar when trigger is focused; activates buttons. |
-| `Tab` | Next Control | Navigates between Month Prev/Next, Day cells, Today, and Clear buttons. |
+| `Tab` | Next Control | Navigates between Shortcuts, Month Prev/Next, Day cells, Today, and Clear buttons. |
 | `Escape` | Close | Closes calendar popup. |
 
 ---
 
 ### DateRangePicker
 
-From/To date range picker with preview formatting and quick apply action.
+From/To date range picker with preview formatting, quick shortcut presets (`shortcuts`), date disabling rules (`disabledDate`), universal sizing, and native HTML form submission.
 
 #### How to Use
 
@@ -825,12 +926,21 @@ function Example() {
 
   return (
     <DateRangePicker
+      name="dateRange"
       value={range}
-      onChange={(newRange) => {
-        console.log('Range:', newRange) // [Date, Date]
-        setRange(newRange)
-      }}
+      onChange={(newRange) => setRange(newRange)}
+      size="md"
       placeholder="Select date range"
+      shortcuts={[
+        {
+          label: 'Last 7 Days',
+          value: [new Date(Date.now() - 7 * 86400000), new Date()]
+        },
+        {
+          label: 'Last 30 Days',
+          value: [new Date(Date.now() - 30 * 86400000), new Date()]
+        }
+      ]}
     />
   )
 }
@@ -840,8 +950,13 @@ function Example() {
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `value` | `[Date \| string, Date \| string] \| []` | `[]` | Start and end dates. |
+| `value` | `[Date \| string, Date \| string] \| []` | `undefined` | Controlled start and end dates. |
+| `defaultValue` | `[Date \| string, Date \| string] \| []` | `[]` | Uncontrolled default date range for HTML forms. |
 | `onChange` | `(range: [Date, Date] \| []) => void` | `undefined` | Fired when "Apply Range" or "Clear" is clicked. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Height variant (`sm` = 36px, `md` = 44px, `lg` = 48px). |
+| `name` | `string` | `undefined` | HTML `name` attribute rendered as hidden `<input>` for native forms. |
+| `shortcuts` | `Array<{ label: string, value: [Date, Date] \| (() => [Date, Date]) }>` | `undefined` | Quick range preset buttons (e.g. "Last 7 Days", "This Month"). |
+| `disabledDate` | `(date: Date) => boolean` | `undefined` | Disables dates matching condition. |
 | `placeholder` | `string` | `'Select Date Range'` | Empty state label. |
 | `className` | `string` | `''` | Container class name. |
 
@@ -850,14 +965,14 @@ function Example() {
 | Key | Operation | Description |
 | :--- | :--- | :--- |
 | `Enter` / `Space` | Open Popup | Opens the date range configuration popover. |
-| `Tab` | Navigate Fields | Cycles between From date input, To date input, Clear, and Apply Range. |
+| `Tab` | Navigate Fields | Cycles between Shortcut buttons, From date input, To date input, Clear, and Apply Range. |
 | `Escape` | Dismiss | Closes popover without applying unsubmitted changes. |
 
 ---
 
 ### TimePicker
 
-Hour and minute picker supporting both 12-hour (AM/PM) and 24-hour formats, presets, and a "Now" button.
+Hour and minute picker supporting both 12-hour (AM/PM) and 24-hour formats, presets, "Now" button, universal sizing, and native form integration.
 
 #### How to Use
 
@@ -870,12 +985,10 @@ function Example() {
 
   return (
     <TimePicker
+      name="meetingTime"
       value={time}
-      onChange={(time24Str, details) => {
-        console.log('24h string:', time24Str)
-        console.log('Details:', details)
-        setTime(details.time12)
-      }}
+      onChange={(time24Str, details) => setTime(details.time12)}
+      size="md"
       is12h
       cleanable
     />
@@ -887,8 +1000,11 @@ function Example() {
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `value` | `string \| Date` | `''` | Time string (e.g. `'14:30'`, `'02:30 PM'`) or `Date`. |
+| `value` | `string \| Date` | `undefined` | Controlled time string (e.g. `'14:30'`, `'02:30 PM'`) or `Date`. |
+| `defaultValue` | `string \| Date` | `''` | Default uncontrolled time for native HTML forms. |
 | `onChange` | `(time24: string, details: object) => void` | `undefined` | Callback returning 24-hour string and breakdown object. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Height variant (`sm` = 36px, `md` = 44px, `lg` = 48px). |
+| `name` | `string` | `undefined` | HTML `name` attribute rendered as hidden `<input>` for forms. |
 | `is12h` | `boolean` | `true` | Enables 12-hour mode with AM/PM toggle. Set `false` for 24-hour format. |
 | `cleanable` | `boolean` | `true` | Shows clear button (`✕`) when time is set. |
 | `placeholder` | `string` | `'Select Time'` | Trigger placeholder text. |
@@ -914,7 +1030,7 @@ function Example() {
 
 ### Toggle
 
-Accessible animated switch button with optional internal label text.
+Accessible animated switch button with optional internal label text, controlled or uncontrolled state, and native form integration.
 
 #### How to Use
 
@@ -927,6 +1043,7 @@ function Example() {
 
   return (
     <Toggle
+      name="notifications"
       checked={enabled}
       onChange={setEnabled}
       checkedChildren="ON"
@@ -941,8 +1058,10 @@ function Example() {
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `checked` | `boolean` | `false` | Switch checked state. |
+| `checked` | `boolean` | `undefined` | Controlled switch state. |
+| `defaultChecked` | `boolean` | `false` | Uncontrolled default state for native forms. |
 | `onChange` | `(checked: boolean) => void` | `undefined` | Callback fired on toggle switch. |
+| `name` | `string` | `undefined` | HTML `name` attribute rendered as hidden `<input type="checkbox">` for form submissions. |
 | `checkedChildren` | `ReactNode` | `undefined` | Text or icon shown when `checked=true`. |
 | `unCheckedChildren` | `ReactNode` | `undefined` | Text or icon shown when `checked=false`. |
 | `size` | `'md' \| 'lg'` | `'md'` | Size variant. |
@@ -959,7 +1078,7 @@ function Example() {
 
 ### Checkbox
 
-Controlled checkbox with associated label.
+Controlled or uncontrolled checkbox with associated label and native form integration.
 
 #### How to Use
 
@@ -971,7 +1090,7 @@ function Example() {
   const [checked, setChecked] = useState(false)
 
   return (
-    <Checkbox checked={checked} onChange={setChecked}>
+    <Checkbox name="terms" checked={checked} onChange={setChecked}>
       Subscribe to product updates
     </Checkbox>
   )
@@ -982,7 +1101,9 @@ function Example() {
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `checked` | `boolean` | `false` | Checked state. |
+| `checked` | `boolean` | `undefined` | Controlled checked state. |
+| `defaultChecked` | `boolean` | `false` | Uncontrolled default state for forms. |
+| `name` | `string` | `undefined` | HTML `name` attribute for native form submission. |
 | `onChange` | `(checked: boolean, event: ChangeEvent) => void` | `undefined` | Callback fired on check/uncheck. |
 | `children` | `ReactNode` | `undefined` | Label text or elements. |
 | `disabled` | `boolean` | `false` | Disables checkbox. |
@@ -1181,6 +1302,39 @@ function Example() {
 
 ---
 
+### ButtonGroup
+
+Horizontal or vertical connected set of buttons with unified variant styling and size.
+
+#### How to Use
+
+```jsx
+import { ButtonGroup, Button } from '@rahilp010/custom-control'
+
+function Example() {
+  return (
+    <ButtonGroup variant="outline" size="md">
+      <Button>Left</Button>
+      <Button>Middle</Button>
+      <Button>Right</Button>
+    </ButtonGroup>
+  )
+}
+```
+
+#### Props
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `variant` | `'primary' \| 'secondary' \| 'outline' \| 'ghost' \| 'danger'` | `'secondary'` | Visual style propagated to children. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Sizing applied across group buttons. |
+| `orientation` | `'horizontal' \| 'vertical'` | `'horizontal'` | Layout direction of the button group. |
+| `disabled` | `boolean` | `false` | Disables all buttons in the group. |
+| `className` | `string` | `''` | Custom CSS class names. |
+| `children` | `ReactNode` | `undefined` | Child buttons. |
+
+---
+
 ### Modal
 
 Portalled dialog modal with backdrop blur, smooth scale animation, and subcomponents.
@@ -1224,9 +1378,19 @@ function Example() {
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `open` | `boolean` | `false` | Controls whether modal is rendered. |
-| `onClose` | `() => void` | `undefined` | Callback fired when clicking the backdrop overlay. |
-| `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Width constraint (`xs` = 448px, `md` = 672px, `lg` = 1024px, etc.). |
+| `onClose` | `() => void` | `undefined` | Callback fired when modal requests to close. |
+| `closeOnEsc` | `boolean` | `true` | Dismisses modal when `Escape` key is pressed. |
+| `closeOnBackdropClick` | `boolean` | `true` | Dismisses modal when clicking outside dialog on the dimmed backdrop. |
+| `bodyLock` | `boolean` | `true` | Locks background `document.body` scroll while modal is visible. |
+| `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Width constraint (`xs` = 448px, `sm` = 512px, `md` = 672px, `lg` = 896px, `xl` = 1152px). |
 | `children` | `ReactNode` | `undefined` | Dialog contents. |
+
+#### Keyboard Shortcuts
+
+| Key | Operation | Description |
+| :--- | :--- | :--- |
+| `Escape` | Close Dialog | Dismisses open modal when `closeOnEsc=true`. |
+| `Tab` | Focus Cycle | Cycles interactive focus inside modal elements. |
 
 #### Subcomponents
 
@@ -1234,6 +1398,555 @@ function Example() {
 - `Modal.Title`: Formatted header heading element.
 - `Modal.Body`: Scrollable main content area (`overflow-auto`).
 - `Modal.Footer`: Bottom border action bar.
+
+---
+
+### Drawer
+
+Slide-over sheet panel overlay anchoring from screen edges (`right`, `left`, `top`, `bottom`) with backdrop blur, smooth spring entrance, body scroll locking, and accessible keyboard dismiss.
+
+#### How to Use
+
+```jsx
+import { useState } from 'react'
+import { Drawer, Button } from '@rahilp010/custom-control'
+
+function Example() {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Open Drawer</Button>
+
+      <Drawer
+        open={open}
+        onClose={() => setOpen(false)}
+        placement="right"
+        size="md"
+        closeOnEsc
+      >
+        <Drawer.Header>
+          <Drawer.Title>Account Settings</Drawer.Title>
+        </Drawer.Header>
+        <Drawer.Body>
+          <p className="text-sm">Manage user security, API keys, and notification preferences.</p>
+        </Drawer.Body>
+        <Drawer.Footer>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="primary" onClick={() => setOpen(false)}>Save</Button>
+        </Drawer.Footer>
+      </Drawer>
+    </>
+  )
+}
+```
+
+#### Props (Drawer)
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `open` | `boolean` | `false` | Controls whether drawer is rendered. |
+| `onClose` | `() => void` | `undefined` | Callback fired when drawer requests to close. |
+| `placement` | `'right' \| 'left' \| 'top' \| 'bottom'` | `'right'` | Edge of the viewport where the panel slides out from. |
+| `size` | `'sm' \| 'md' \| 'lg' \| 'full'` | `'md'` | Width (or height for top/bottom) constraint (`sm` = 320px, `md` = 448px, `lg` = 640px, `full` = 100vw). |
+| `closeOnEsc` | `boolean` | `true` | Dismisses drawer when `Escape` key is pressed. |
+| `closeOnBackdropClick` | `boolean` | `true` | Dismisses drawer when clicking on the backdrop overlay. |
+| `bodyLock` | `boolean` | `true` | Locks background `document.body` scroll while drawer is open. |
+| `className` | `string` | `''` | Custom CSS class names for panel container. |
+| `children` | `ReactNode` | `undefined` | Drawer content (`Drawer.Header`, `Drawer.Body`, `Drawer.Footer`, etc.). |
+
+#### Subcomponents
+
+- `Drawer.Header`: Top bar container with bottom border.
+- `Drawer.Title`: Bold styled heading.
+- `Drawer.Body`: Scrollable body area (`overflow-y-auto`).
+- `Drawer.Footer`: Action bar with top border.
+
+#### Keyboard Shortcuts
+
+| Key | Operation | Description |
+| :--- | :--- | :--- |
+| `Escape` | Close | Dismisses drawer when `closeOnEsc=true`. |
+| `Tab` | Focus Cycle | Cycles interactive focus through drawer elements. |
+
+---
+
+### Tabs
+
+Dynamic tabbed navigation with interactive Framer Motion sliding pill/line active indicators, badge integration, and accessible keyboard navigation.
+
+#### How to Use
+
+```jsx
+import { useState } from 'react'
+import { Tabs } from '@rahilp010/custom-control'
+
+function Example() {
+  const [active, setActive] = useState('profile')
+
+  return (
+    <Tabs value={active} onChange={setActive} variant="line" size="md">
+      <Tabs.List>
+        <Tabs.Tab value="profile">Profile</Tabs.Tab>
+        <Tabs.Tab value="billing" badge="3">Billing</Tabs.Tab>
+        <Tabs.Tab value="settings" disabled>Settings</Tabs.Tab>
+      </Tabs.List>
+
+      <Tabs.Panel value="profile">
+        <p className="p-4 text-sm">Personal details and public profile information.</p>
+      </Tabs.Panel>
+      <Tabs.Panel value="billing">
+        <p className="p-4 text-sm">Invoices, payment methods, and current subscription plan.</p>
+      </Tabs.Panel>
+      <Tabs.Panel value="settings">
+        <p className="p-4 text-sm">Application preferences.</p>
+      </Tabs.Panel>
+    </Tabs>
+  )
+}
+```
+
+#### Props (Tabs)
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `value` | `string \| number` | `undefined` | Controlled active tab value. |
+| `defaultValue` | `string \| number` | `undefined` | Default active tab for uncontrolled usage. |
+| `onChange` | `(value: string \| number) => void` | `undefined` | Callback fired when active tab changes. |
+| `variant` | `'line' \| 'pill' \| 'segmented'` | `'line'` | Visual tab styling (`line` with indicator, `pill` chips, or `segmented` control). |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Sizing of tab triggers. |
+| `className` | `string` | `''` | Custom CSS class names. |
+| `children` | `ReactNode` | `undefined` | Tab children (`Tabs.List`, `Tabs.Panel`). |
+
+#### Props (Tabs.Tab)
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `value` | `string \| number` | (required) | Unique identifier for this tab. |
+| `disabled` | `boolean` | `false` | Whether tab button is disabled. |
+| `icon` | `ReactNode` | `undefined` | Icon element rendered before tab title. |
+| `badge` | `ReactNode` | `undefined` | Count or status badge rendered after tab title. |
+| `className` | `string` | `''` | Custom CSS class names. |
+
+#### Keyboard Shortcuts
+
+| Key | Operation | Description |
+| :--- | :--- | :--- |
+| `ArrowRight` / `ArrowDown` | Next Tab | Focuses and activates next tab (skips disabled tabs). |
+| `ArrowLeft` / `ArrowUp` | Previous Tab | Focuses and activates previous tab (skips disabled tabs). |
+| `Home` | First Tab | Jumps to the first enabled tab. |
+| `End` | Last Tab | Jumps to the last enabled tab. |
+| `Enter` / `Space` | Select Tab | Activates the focused tab. |
+
+---
+
+### Pagination
+
+Full pagination bar with numeric page buttons, ellipsis (`...`), previous/next navigation, total count display, and page size selector.
+
+#### How to Use
+
+```jsx
+import { useState } from 'react'
+import { Pagination } from '@rahilp010/custom-control'
+
+function Example() {
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(20)
+
+  return (
+    <Pagination
+      total={250}
+      page={page}
+      onChangePage={setPage}
+      pageSize={limit}
+      onChangePageSize={setLimit}
+      pageSizeOptions={[10, 20, 50, 100]}
+      showTotal
+      showPageSize
+      size="md"
+    />
+  )
+}
+```
+
+#### Props
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `total` | `number` | `0` | Total number of data items. |
+| `page` / `activePage` | `number` | `undefined` | Controlled active page number (1-indexed). |
+| `defaultPage` | `number` | `1` | Default active page number. |
+| `pageSize` / `limit` | `number` | `undefined` | Controlled items per page. |
+| `defaultPageSize` | `number` | `10` | Default items per page. |
+| `onChangePage` | `(page: number) => void` | `undefined` | Callback fired on page change. |
+| `onChangePageSize` | `(pageSize: number) => void` | `undefined` | Callback fired when items-per-page selector changes. |
+| `pageSizeOptions` | `number[]` | `[10, 20, 50, 100]` | Available page size dropdown options. |
+| `showTotal` | `boolean` | `true` | Shows total item count summary. |
+| `showPageSize` | `boolean` | `false` | Shows page size select dropdown. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Sizing of pagination buttons. |
+
+#### Keyboard Shortcuts
+
+| Key | Operation | Description |
+| :--- | :--- | :--- |
+| `ArrowRight` | Next Page | Focuses and activates next page button. |
+| `ArrowLeft` | Previous Page | Focuses and activates previous page button. |
+| `Enter` / `Space` | Change Page | Navigates to the focused page number. |
+| `Tab` | Next Control | Navigates between page buttons and page size selector. |
+
+---
+
+### DropdownMenu
+
+Floating context action menu anchored to any trigger element with item separators, icons, headers, danger actions, and full arrow navigation.
+
+#### How to Use
+
+```jsx
+import { DropdownMenu, Button } from '@rahilp010/custom-control'
+
+function Example() {
+  return (
+    <DropdownMenu
+      trigger={<Button variant="outline">Actions ▾</Button>}
+      placement="bottom-start"
+    >
+      <DropdownMenu.Header>User Options</DropdownMenu.Header>
+      <DropdownMenu.Item onClick={() => alert('Profile')}>
+        Profile
+      </DropdownMenu.Item>
+      <DropdownMenu.Item onClick={() => alert('Settings')}>
+        Settings
+      </DropdownMenu.Item>
+      <DropdownMenu.Separator />
+      <DropdownMenu.Item danger onClick={() => alert('Delete')}>
+        Delete Account
+      </DropdownMenu.Item>
+    </DropdownMenu>
+  )
+}
+```
+
+#### Props (DropdownMenu)
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `trigger` | `ReactNode` | (required) | Interactive element that opens the dropdown menu when clicked. |
+| `placement` | `'bottom-start' \| 'bottom-end' \| 'top-start' \| 'top-end'` | `'bottom-start'` | Positioning of the floating dropdown panel. |
+| `disabled` | `boolean` | `false` | Disables trigger and menu opening. |
+| `closeOnSelect` | `boolean` | `true` | Automatically closes menu when an item is selected. |
+| `menuClassName` | `string` | `''` | Custom CSS class names for dropdown popover. |
+
+#### Props (DropdownMenu.Item)
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `onClick` | `(event: MouseEvent) => void` | `undefined` | Item click callback. |
+| `icon` | `ReactNode` | `undefined` | Icon element rendered before item label. |
+| `danger` | `boolean` | `false` | Styles item with red danger/destructive text & hover styling. |
+| `disabled` | `boolean` | `false` | Disables click interaction. |
+
+#### Keyboard Shortcuts
+
+| Key | Operation | Description |
+| :--- | :--- | :--- |
+| `Enter` / `Space` / `ArrowDown` | Open Menu | When trigger is focused, opens dropdown menu. |
+| `ArrowDown` | Next Item | Highlights next menu item (skips separators & headers). |
+| `ArrowUp` | Previous Item | Highlights preceding menu item. |
+| `Home` | First Item | Jumps highlight to first selectable item. |
+| `End` | Last Item | Jumps highlight to last selectable item. |
+| `Enter` | Select Item | Activates highlighted item. |
+| `Escape` | Close Menu | Dismisses dropdown menu. |
+
+---
+
+### Accordion
+
+Collapsible disclosure panel supporting single or multi-expand modes (`multiple`), animated height transition, and rotating chevron indicators.
+
+#### How to Use
+
+```jsx
+import { Accordion } from '@rahilp010/custom-control'
+
+function Example() {
+  return (
+    <Accordion defaultActiveKey="1">
+      <Accordion.Item eventKey="1">
+        <Accordion.Header>What is @rahilp010/custom-control?</Accordion.Header>
+        <Accordion.Body>
+          A modern, lightweight React form controls and UI library with 40+ components.
+        </Accordion.Body>
+      </Accordion.Item>
+
+      <Accordion.Item eventKey="2">
+        <Accordion.Header>Does it support Server-Side Rendering?</Accordion.Header>
+        <Accordion.Body>
+          Yes! All popovers, modals, and drawers use SSR-guarded portals compatible with Next.js and Remix.
+        </Accordion.Body>
+      </Accordion.Item>
+    </Accordion>
+  )
+}
+```
+
+#### Props (Accordion)
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `activeKey` | `string \| number \| Array<string \| number>` | `undefined` | Controlled active accordion item key(s). |
+| `defaultActiveKey` | `string \| number \| Array<string \| number>` | `undefined` | Default expanded item key(s). |
+| `onChange` | `(key: any) => void` | `undefined` | Callback fired when active item changes. |
+| `multiple` | `boolean` | `false` | When true, allows multiple panels to be open simultaneously. |
+
+#### Props (Accordion.Item)
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `eventKey` | `string \| number` | (required) | Unique identifier for this panel. |
+| `disabled` | `boolean` | `false` | Disables toggle interaction. |
+
+#### Keyboard Shortcuts
+
+| Key | Operation | Description |
+| :--- | :--- | :--- |
+| `Enter` / `Space` | Toggle Panel | Expands or collapses focused accordion panel. |
+| `ArrowDown` | Next Header | Moves focus to the next accordion header. |
+| `ArrowUp` | Previous Header | Moves focus to the previous accordion header. |
+| `Home` | First Header | Jumps focus to first accordion header. |
+| `End` | Last Header | Jumps focus to last accordion header. |
+
+---
+
+### Badge
+
+Notification badge component supporting count readouts, overflow caps (`max`), dot badges, status colors, and corner positioning.
+
+#### How to Use
+
+```jsx
+import { Badge, Button } from '@rahilp010/custom-control'
+
+function Example() {
+  return (
+    <div className="flex gap-6 items-center">
+      {/* Count Badge */}
+      <Badge count={5}>
+        <Button variant="outline">Inbox</Button>
+      </Badge>
+
+      {/* Overflow Cap */}
+      <Badge count={120} max={99} color="error">
+        <Button variant="outline">Notifications</Button>
+      </Badge>
+
+      {/* Status Dot */}
+      <Badge dot color="success">
+        <div className="w-10 h-10 rounded-full bg-cc-overlay/10" />
+      </Badge>
+    </div>
+  )
+}
+```
+
+#### Props
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `count` | `number \| ReactNode` | `undefined` | Number or element rendered inside badge. |
+| `max` | `number` | `99` | Maximum number before displaying `${max}+` (e.g. `99+`). |
+| `dot` | `boolean` | `false` | Renders a small circular dot indicator without text. |
+| `color` | `'primary' \| 'success' \| 'warning' \| 'error' \| 'info' \| 'neutral'` | `'error'` | Badge background color variant. |
+| `placement` | `'top-right' \| 'top-left' \| 'bottom-right' \| 'bottom-left'` | `'top-right'` | Corner placement relative to child element. |
+| `children` | `ReactNode` | `undefined` | Wrapped target element (or standalone if omitted). |
+
+---
+
+### Tag & Chip
+
+Compact interactive label tag with removable dismiss buttons (`closable`), solid/subtle/outline variants, status colors, and sizing. `Chip` is an alias of `Tag`.
+
+#### How to Use
+
+```jsx
+import { Tag, Chip } from '@rahilp010/custom-control'
+
+function Example() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Tag color="primary" variant="subtle">React</Tag>
+      <Tag color="success" variant="solid">Active</Tag>
+      <Tag color="warning" variant="outline">Pending</Tag>
+      <Tag
+        color="error"
+        variant="subtle"
+        closable
+        onClose={() => alert('Removed')}
+      >
+        Removable Filter
+      </Tag>
+    </div>
+  )
+}
+```
+
+#### Props
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `variant` | `'solid' \| 'subtle' \| 'outline'` | `'subtle'` | Visual styling variant. |
+| `color` | `'primary' \| 'success' \| 'warning' \| 'error' \| 'info' \| 'neutral'` | `'neutral'` | Color theme. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Height & padding preset (`sm` = 20px, `md` = 24px, `lg` = 28px). |
+| `closable` | `boolean` | `false` | Displays a close button (`✕`). |
+| `onClose` | `(event: MouseEvent) => void` | `undefined` | Callback fired when close button is clicked. |
+| `icon` | `ReactNode` | `undefined` | Leading icon element. |
+
+#### Keyboard Shortcuts
+
+| Key | Operation | Description |
+| :--- | :--- | :--- |
+| `Enter` / `Space` | Remove | Triggers `onClose` when close icon button is focused. |
+| `Tab` | Focus | Navigates into and out of tag element. |
+
+---
+
+### Rate
+
+Star rating component with hover preview, half-star selection (`allowHalf`), custom character icons, read-only mode, and form compatibility.
+
+#### How to Use
+
+```jsx
+import { useState } from 'react'
+import { Rate } from '@rahilp010/custom-control'
+
+function Example() {
+  const [score, setScore] = useState(3.5)
+
+  return (
+    <Rate
+      name="rating"
+      value={score}
+      onChange={setScore}
+      allowHalf
+      max={5}
+      size="md"
+    />
+  )
+}
+```
+
+#### Props
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `value` | `number` | `undefined` | Controlled score value. |
+| `defaultValue` | `number` | `0` | Uncontrolled default score for native forms. |
+| `onChange` | `(value: number) => void` | `undefined` | Callback fired on rating selection. |
+| `onHoverChange` | `(value: number) => void` | `undefined` | Callback fired when hovering over stars. |
+| `max` | `number` | `5` | Total number of rating stars/characters. |
+| `allowHalf` | `boolean` | `false` | Enables half-star precision (`0.5` steps). |
+| `readOnly` | `boolean` | `false` | Disables clicks & hover interactions (display-only). |
+| `disabled` | `boolean` | `false` | Disables rating component. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Star icon size (`sm` = 16px, `md` = 20px, `lg` = 28px). |
+| `character` | `ReactNode` | `★` | Custom character or icon (defaults to star icon). |
+| `name` | `string` | `undefined` | HTML `name` attribute rendered as hidden `<input>`. |
+
+#### Keyboard Shortcuts
+
+| Key | Operation | Description |
+| :--- | :--- | :--- |
+| `ArrowRight` / `ArrowUp` | Increase Score | Increases rating by 1 (or 0.5 when `allowHalf=true`). |
+| `ArrowLeft` / `ArrowDown` | Decrease Score | Decreases rating by 1 (or 0.5 when `allowHalf=true`). |
+
+---
+
+### Avatar & AvatarGroup
+
+User profile avatar with image thumbnail, fallback initials generator from name, online/offline status dot indicator, and stacked `AvatarGroup` with `+N` overflow badge.
+
+#### How to Use
+
+```jsx
+import { Avatar, AvatarGroup } from '@rahilp010/custom-control'
+
+function Example() {
+  return (
+    <div className="space-y-4">
+      {/* Single Avatars */}
+      <div className="flex gap-3 items-center">
+        <Avatar name="Rahil Patel" size="md" status="online" />
+        <Avatar src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" size="md" status="busy" />
+        <Avatar name="John Doe" shape="square" size="lg" />
+      </div>
+
+      {/* Stacked Avatar Group with Overflow */}
+      <AvatarGroup max={3} size="md">
+        <Avatar name="Alex Morgan" />
+        <Avatar name="David Beckham" />
+        <Avatar name="Lionel Messi" />
+        <Avatar name="Cristiano Ronaldo" />
+        <Avatar name="Kylian Mbappe" />
+      </AvatarGroup>
+    </div>
+  )
+}
+```
+
+#### Props (Avatar)
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `src` | `string` | `undefined` | Profile image URL. |
+| `alt` | `string` | `''` | Alt description for image. |
+| `name` | `string` | `undefined` | Full name used to generate two-letter initials fallback (e.g. `'Rahil Patel'` -> `'RP'`). |
+| `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Avatar dimensions (`xs` = 24px, `sm` = 32px, `md` = 40px, `lg` = 48px, `xl` = 64px). |
+| `shape` | `'circle' \| 'square'` | `'circle'` | Corner rounding shape. |
+| `status` | `'online' \| 'offline' \| 'busy' \| 'away'` | `undefined` | Colored presence badge dot. |
+| `icon` | `ReactNode` | `undefined` | Custom fallback icon when image & name are not provided. |
+
+#### Props (AvatarGroup)
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `max` | `number` | `undefined` | Maximum visible avatars before collapsing into a `+N` badge. |
+| `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Sizing applied across avatars in the group. |
+| `shape` | `'circle' \| 'square'` | `'circle'` | Shape applied across avatars in the group. |
+| `spacing` | `'tight' \| 'normal' \| 'relaxed'` | `'normal'` | Negative margin overlap between avatars. |
+
+---
+
+### Divider
+
+Horizontal or vertical rule divider with center, left, or right aligned title labels and optional dashed styling.
+
+#### How to Use
+
+```jsx
+import { Divider } from '@rahilp010/custom-control'
+
+function Example() {
+  return (
+    <div className="space-y-4">
+      <p>Sign in with email and password</p>
+      <Divider align="center">OR CONTINUE WITH</Divider>
+      <p>Single Sign-On (SSO)</p>
+    </div>
+  )
+}
+```
+
+#### Props
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `direction` | `'horizontal' \| 'vertical'` | `'horizontal'` | Orientation of the divider rule. |
+| `align` | `'center' \| 'left' \| 'right'` | `'center'` | Title label alignment. |
+| `dashed` | `boolean` | `false` | Displays border as dashed lines instead of solid. |
+| `children` | `ReactNode` | `undefined` | Optional title label element placed on divider line. |
+
+---
 
 ---
 
@@ -1319,7 +2032,7 @@ function Example() {
 
 ### Toast & ToastProvider
 
-Timed notification toast system with imperative hook helpers (`useToast`).
+Timed notification toast system with interactive action buttons (`action`), promise tracking (`promise`), and imperative hook helpers (`useToast`).
 
 #### How to Use
 
@@ -1327,15 +2040,27 @@ Timed notification toast system with imperative hook helpers (`useToast`).
 import { ToastProvider, useToast, Button } from '@rahilp010/custom-control'
 
 function ToastTrigger() {
-  const { success, error, info, warning } = useToast()
+  const { success, error, promise } = useToast()
+
+  const handleSave = () => {
+    // Automatically handles pending -> success/error states!
+    promise(
+      fetch('/api/save', { method: 'POST' }),
+      {
+        loading: 'Saving profile...',
+        success: 'Profile saved successfully!',
+        error: 'Failed to update profile.'
+      }
+    )
+  }
 
   return (
     <div className="flex gap-2">
-      <Button onClick={() => success('Data saved successfully!')}>
-        Success Toast
-      </Button>
-      <Button onClick={() => error('Failed to fetch data')}>
-        Error Toast
+      <Button onClick={handleSave}>Save with Promise Toast</Button>
+      <Button onClick={() => success('Item archived', {
+        action: { label: 'Undo', onClick: () => alert('Undo clicked') }
+      })}>
+        Toast with Action
       </Button>
     </div>
   )
@@ -1362,11 +2087,12 @@ export default function App() {
 
 | Method | Parameters | Description |
 | :--- | :--- | :--- |
+| `promise(prom, msgs)` | `prom: Promise \| (() => Promise), msgs: { loading, success, error }` | Tracks an async Promise, rendering loading -> success / error toast seamlessly. |
 | `success(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers a green success notification. |
 | `error(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers a red error notification. |
 | `warning(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers an amber warning notification. |
 | `info(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers a blue info notification. |
-| `toast(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers generic toast with custom options. |
+| `toast(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers generic toast with custom options (`action`, `duration`, etc.). |
 | `dismiss(id)` | `id: number` | Dismisses a specific toast by its ID. |
 | `dismissAll()` | none | Dismisses all active toasts immediately. |
 

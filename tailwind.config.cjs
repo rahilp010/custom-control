@@ -1,6 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./components/**/*.{js,jsx}', './src/**/*.{js,jsx}', './src/styles.css'],
+  content: [
+    './components/**/*.{js,jsx}',
+    './src/**/*.{js,jsx}',
+    './src/styles.css',
+    './demo/**/*.{js,jsx}',
+    './index.html'
+  ],
   corePlugins: {
     // The package must never reset the host application's styles.
     preflight: false

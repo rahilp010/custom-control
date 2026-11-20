@@ -70,6 +70,7 @@
      package never touches the host application's global styles. */
   .cc-scope :where(button, input, textarea, select),
   .cc-portal :where(button, input, textarea, select) {
+    box-sizing: border-box;
     font: inherit;
     letter-spacing: inherit;
     color: inherit;

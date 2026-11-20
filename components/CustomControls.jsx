@@ -927,96 +927,63 @@ export const Alert = ({
 
 
 export const Toast = ({
-
     variant = 'info',
-
     title,
-
     children,
-
     duration = 5000,
-
+    action,
     onClose,
-
     className = ''
-
 }) => {
-
     useEffect(() => {
-
         if (!duration || !onClose) return undefined
-
         const timer = window.setTimeout(onClose, duration)
-
         return () => window.clearTimeout(timer)
-
     }, [duration, onClose])
 
-
-
     const variantClasses = {
-
         info: 'border-l-4 border-l-blue-500',
-
         success: 'border-l-4 border-l-emerald-500',
-
         warning: 'border-l-4 border-l-amber-500',
-
         error: 'border-l-4 border-l-red-500'
-
     }
 
-
-
     return (
-
         <div
-
             role={variant === 'error' ? 'alert' : 'status'}
-
             className={`pointer-events-auto w-full rounded-xl border border-cc-overlay/10 bg-cc-surface p-4 text-sm text-cc-text shadow-xl shadow-cc-scrim/15 ${variantClasses[variant] || variantClasses.info} ${className}`}
-
         >
-
             <div className="flex items-start justify-between gap-3">
-
-                <div className="min-w-0">
-
+                <div className="min-w-0 flex-1">
                     {title && <p className="mb-1 font-semibold">{title}</p>}
-
                     <div className="text-cc-muted">{children}</div>
-
+                    {action && (
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                action.onClick?.(e)
+                                onClose?.()
+                            }}
+                            className="mt-2 text-xs font-semibold text-cc-primary hover:underline block"
+                        >
+                            {action.label}
+                        </button>
+                    )}
                 </div>
-
                 {onClose && (
-
                     <button
-
                         type="button"
-
                         aria-label="Close notification"
-
                         onClick={onClose}
-
                         className="shrink-0 rounded-md px-2 py-1 text-lg leading-none text-cc-muted transition-colors hover:bg-cc-overlay/5 hover:text-cc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cc-primary/40"
-
                     >
-
                         ×
-
                     </button>
-
                 )}
-
             </div>
-
         </div>
-
     )
-
 }
-
-
 
 const ToastContext = createContext(null)
 
@@ -1094,7 +1061,23 @@ export const ToastProvider = ({ children, position = 'top-right', limit = 5, dur
 
             dismiss,
 
-            dismissAll: () => setToasts([])
+            dismissAll: () => setToasts([]),
+
+            promise: (prom, { loading = 'Loading...', success = 'Success', error = 'Something went wrong' } = {}) => {
+                const id = toast(loading, { variant: 'info', duration: 0 })
+                const p = typeof prom === 'function' ? prom() : prom
+                return Promise.resolve(p)
+                    .then((data) => {
+                        const msg = typeof success === 'function' ? success(data) : success
+                        setToasts((curr) => curr.map((t) => t.id === id ? { ...t, message: msg, variant: 'success', duration } : t))
+                        return data
+                    })
+                    .catch((err) => {
+                        const msg = typeof error === 'function' ? error(err) : error
+                        setToasts((curr) => curr.map((t) => t.id === id ? { ...t, message: msg, variant: 'error', duration } : t))
+                        throw err
+                    })
+            }
 
         }),
 
@@ -1376,6 +1359,12 @@ export const ColorPicker = forwardRef(
 
 const panelClass = 'border border-cc-overlay/10 bg-cc-surface text-cc-text shadow-2xl shadow-cc-scrim/15'
 
+export const controlSizes = {
+    sm: 'h-8 px-2.5 text-xs rounded-lg',
+    md: 'h-11 px-4 text-sm rounded-xl',
+    lg: 'h-13 px-5 text-base rounded-xl'
+}
+
 const filterDomProps = (props = {}) => {
     const {
         container,
@@ -1399,6 +1388,20 @@ const filterDomProps = (props = {}) => {
         containerStyle,
         onCreateNew,
         createNewText,
+        shortcuts,
+        disabledDate,
+        groupBy,
+        creatable,
+        onSearch,
+        tagDisplay,
+        loading,
+        clearable,
+        prefix,
+        suffix,
+        closeOnEsc,
+        closeOnBackdropClick,
+        bodyLock,
+        action,
         ...validProps
     } = props
     return validProps
@@ -1448,32 +1451,100 @@ const useDropdownPosition = (open, triggerRef, menuWidthOverride = null) => {
     return { coords, updatePosition }
 }
 
-export const Input = ({
-    value = '',
-    onChange,
-    placeholder,
-    type = 'text',
-    className = '',
-    ...props
-}) => (
-    <input
-        {...filterDomProps(props)}
-        type={type}
-        value={value ?? ''}
-        placeholder={placeholder}
-        onChange={(e) => onChange?.(e.target.value, e)}
-        className={`h-11 w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 text-sm font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-    />
-)
+export const Input = forwardRef((
+    {
+        value: controlledValue,
+        defaultValue,
+        onChange,
+        placeholder,
+        type = 'text',
+        size = 'md',
+        prefix,
+        suffix,
+        clearable = false,
+        disabled = false,
+        name,
+        className = '',
+        ...props
+    },
+    ref
+) => {
+    const isControlled = controlledValue !== undefined
+    const [innerValue, setInnerValue] = useState(defaultValue ?? '')
+    const currentValue = isControlled ? (controlledValue ?? '') : innerValue
 
-export const InputGroup = ({ children, className = '', ...props }) => (
-    <div
-        {...filterDomProps(props)}
-        className={`flex h-11 items-center overflow-hidden rounded-xl border border-cc-overlay/10 bg-cc-surface transition-all focus-within:border-cc-primary/50 focus-within:ring-4 focus-within:ring-cc-primary/10 ${className}`}
-    >
-        {children}
-    </div>
-)
+    const handleChange = (e) => {
+        if (!isControlled) setInnerValue(e.target.value)
+        onChange?.(e.target.value, e)
+    }
+
+    const handleClear = (e) => {
+        e.stopPropagation()
+        if (!isControlled) setInnerValue('')
+        onChange?.('', e)
+    }
+
+    const sizeClass = controlSizes[size] || controlSizes.md
+
+    if (prefix || suffix || clearable) {
+        return (
+            <div
+                className={`relative flex items-center w-full rounded-xl border border-cc-overlay/10 bg-cc-surface transition-all focus-within:border-cc-primary/50 focus-within:ring-4 focus-within:ring-cc-primary/10 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+            >
+                {prefix && <div className="flex shrink-0 items-center pl-3 text-cc-muted">{prefix}</div>}
+                <input
+                    {...filterDomProps(props)}
+                    ref={ref}
+                    type={type}
+                    name={name}
+                    disabled={disabled}
+                    value={currentValue}
+                    placeholder={placeholder}
+                    onChange={handleChange}
+                    className={`w-full bg-transparent border-0 outline-none font-normal text-cc-text placeholder:text-cc-subtle disabled:cursor-not-allowed ${sizeClass} ${prefix ? 'pl-2' : ''} ${suffix || (clearable && currentValue) ? 'pr-2' : ''}`}
+                />
+                {clearable && currentValue && !disabled && (
+                    <button
+                        type="button"
+                        onClick={handleClear}
+                        tabIndex={-1}
+                        aria-label="Clear input"
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text mr-2"
+                    >
+                        <CloseRounded style={{ fontSize: 14 }} />
+                    </button>
+                )}
+                {suffix && <div className="flex shrink-0 items-center pr-3 text-cc-muted">{suffix}</div>}
+            </div>
+        )
+    }
+
+    return (
+        <input
+            {...filterDomProps(props)}
+            ref={ref}
+            type={type}
+            name={name}
+            disabled={disabled}
+            value={currentValue}
+            placeholder={placeholder}
+            onChange={handleChange}
+            className={`w-full border border-cc-overlay/10 bg-cc-surface font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${sizeClass} ${className}`}
+        />
+    )
+})
+
+export const InputGroup = ({ children, size = 'md', className = '', ...props }) => {
+    const sizeClass = controlSizes[size] || controlSizes.md
+    return (
+        <div
+            {...filterDomProps(props)}
+            className={`flex ${sizeClass.split(' ')[0]} items-center overflow-hidden rounded-xl border border-cc-overlay/10 bg-cc-surface transition-all focus-within:border-cc-primary/50 focus-within:ring-4 focus-within:ring-cc-primary/10 ${className}`}
+        >
+            {children}
+        </div>
+    )
+}
 
 InputGroup.Button = ({ children, className = '', onClick, ...props }) => (
     <button
@@ -1490,17 +1561,24 @@ export const SelectPicker = forwardRef(
     (
         {
             data = [],
-            value,
+            value: controlledValue,
+            defaultValue,
             onChange,
             placeholder = 'Select...',
             searchable = true,
             cleanable = true,
             style,
+            size = 'md',
             className = '',
             menuMaxHeight = 260,
             menuWidth,
             menuStyle,
             disabled = false,
+            loading = false,
+            name,
+            onSearch,
+            groupBy,
+            creatable = false,
             renderMenuItem,
             renderExtraFooter,
             onCreateNew,
@@ -1517,6 +1595,10 @@ export const SelectPicker = forwardRef(
         const listRef = useRef(null)
         const resolvedMenuWidth = menuStyle?.width ?? menuWidth ?? null
         const { coords, updatePosition } = useDropdownPosition(open, triggerRef, resolvedMenuWidth)
+
+        const isControlled = controlledValue !== undefined
+        const [innerValue, setInnerValue] = useState(defaultValue)
+        const currentValue = isControlled ? controlledValue : innerValue
 
         const handleClose = useCallback(() => {
             setOpen(false)
@@ -1547,7 +1629,8 @@ export const SelectPicker = forwardRef(
             return () => document.removeEventListener('mousedown', handler)
         }, [handleClose])
 
-        const selected = data.find((item) => String(item?.value) === String(value))
+        const selected = data.find((item) => String(item?.value) === String(currentValue))
+
         const filtered = useMemo(() => {
             if (!searchable || !query) return data
             const q = query.toLowerCase()
@@ -1558,16 +1641,37 @@ export const SelectPicker = forwardRef(
             )
         }, [data, query, searchable])
 
-        const displayed = useMemo(() => {
-            if (filtered.length > 80) return filtered.slice(0, 80)
-            return filtered
-        }, [filtered])
+        const displayed = filtered
+
+        const handleSearchChange = (e) => {
+            const val = e.target.value
+            setQuery(val)
+            onSearch?.(val)
+        }
+
+        const handleSelect = (val, item) => {
+            if (!isControlled) setInnerValue(val)
+            onChange?.(val, item)
+            handleClose()
+        }
+
+        const handleClear = (e) => {
+            e.stopPropagation()
+            if (!isControlled) setInnerValue('')
+            onChange?.('', null)
+        }
+
+        const hasExactMatch = data.some((i) => String(i?.label || i?.value).toLowerCase() === query.trim().toLowerCase())
+        const showCreatable = creatable && query.trim() !== '' && !hasExactMatch
+
+        const extraCount = (renderExtraFooter || onCreateNew ? 1 : 0) + (showCreatable ? 1 : 0)
+        const totalCount = displayed.length + extraCount
 
         useEffect(() => {
             if (open) {
-                setFocusedIndex(displayed.length > 0 ? 0 : -1)
+                setFocusedIndex(displayed.length > 0 ? 0 : showCreatable ? 0 : -1)
             }
-        }, [open, query, displayed.length])
+        }, [open, query, displayed.length, showCreatable])
 
         useEffect(() => {
             if (open && focusedIndex >= 0 && listRef.current) {
@@ -1593,9 +1697,6 @@ export const SelectPicker = forwardRef(
                 return
             }
 
-            const extraCount = renderExtraFooter || onCreateNew ? 1 : 0
-            const totalCount = displayed.length + extraCount
-
             if (e.key === 'ArrowDown') {
                 e.preventDefault()
                 setFocusedIndex((prev) => (prev < totalCount - 1 ? prev + 1 : 0))
@@ -1606,9 +1707,11 @@ export const SelectPicker = forwardRef(
                 e.preventDefault()
                 if (focusedIndex >= 0 && focusedIndex < displayed.length) {
                     const item = displayed[focusedIndex]
-                    onChange?.(item?.value, item)
-                    handleClose()
-                } else if (focusedIndex === displayed.length && (renderExtraFooter || onCreateNew)) {
+                    handleSelect(item?.value, item)
+                } else if (showCreatable && focusedIndex === displayed.length) {
+                    const customItem = { label: query.trim(), value: query.trim() }
+                    handleSelect(customItem.value, customItem)
+                } else if (focusedIndex === totalCount - 1 && (renderExtraFooter || onCreateNew)) {
                     handleClose()
                     if (onCreateNew) {
                         onCreateNew()
@@ -1621,6 +1724,8 @@ export const SelectPicker = forwardRef(
                 handleClose()
             }
         }
+
+        const sizeClass = controlSizes[size] || controlSizes.md
 
         const menuContent = (
             <AnimatePresence>
@@ -1656,11 +1761,14 @@ export const SelectPicker = forwardRef(
                                     <input
                                         autoFocus
                                         value={query}
-                                        onChange={(e) => setQuery(e.target.value)}
+                                        onChange={handleSearchChange}
                                         onKeyDown={handleKeyDown}
                                         placeholder="Search..."
                                         className="h-10 w-full bg-transparent px-2 text-sm text-cc-text outline-none placeholder:text-cc-subtle"
                                     />
+                                    {loading && (
+                                        <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-cc-primary border-r-transparent" />
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -1669,45 +1777,68 @@ export const SelectPicker = forwardRef(
                             className="overflow-y-auto p-1.5 customScrollbar"
                             style={{ maxHeight: menuMaxHeight }}
                         >
-                            {displayed.length === 0 ? (
+                            {displayed.length === 0 && !showCreatable ? (
                                 <div className="px-4 py-6 text-center text-sm text-cc-muted">No results found</div>
                             ) : (
-                                displayed.map((item, idx) => {
-                                    const isSelected = String(item?.value) === String(value)
-                                    const isFocused = idx === focusedIndex
-                                    const labelText = item?.label ?? item?.value
-                                    return (
+                                <>
+                                    {displayed.map((item, idx) => {
+                                        const isSelected = String(item?.value) === String(currentValue)
+                                        const isFocused = idx === focusedIndex
+                                        const labelText = item?.label ?? item?.value
+                                        const isGroupHeader = groupBy && (idx === 0 || item[groupBy] !== displayed[idx - 1][groupBy])
+
+                                        return (
+                                            <React.Fragment key={String(item?.value ?? idx)}>
+                                                {isGroupHeader && item[groupBy] && (
+                                                    <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-cc-muted select-none">
+                                                        {item[groupBy]}
+                                                    </div>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onMouseEnter={() => setFocusedIndex(idx)}
+                                                    onClick={() => handleSelect(item?.value, item)}
+                                                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${isSelected
+                                                        ? 'bg-cc-primary/10 text-cc-primary font-semibold'
+                                                        : isFocused
+                                                            ? 'bg-cc-overlay/10 text-cc-text'
+                                                            : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
+                                                        }`}
+                                                >
+                                                    {renderMenuItem ? (
+                                                        renderMenuItem(labelText, item)
+                                                    ) : (
+                                                        <span className="truncate">{labelText}</span>
+                                                    )}
+                                                    {isSelected && !renderMenuItem && <span>✓</span>}
+                                                </button>
+                                            </React.Fragment>
+                                        )
+                                    })}
+
+                                    {showCreatable && (
                                         <button
-                                            key={String(item?.value)}
                                             type="button"
-                                            onMouseEnter={() => setFocusedIndex(idx)}
+                                            onMouseEnter={() => setFocusedIndex(displayed.length)}
                                             onClick={() => {
-                                                onChange?.(item?.value, item)
-                                                handleClose()
+                                                const customItem = { label: query.trim(), value: query.trim() }
+                                                handleSelect(customItem.value, customItem)
                                             }}
-                                            className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${isSelected
-                                                ? 'bg-cc-primary/10 text-cc-primary'
-                                                : isFocused
-                                                    ? 'bg-cc-overlay/10 text-cc-text'
-                                                    : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
+                                            className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm text-cc-primary transition-colors ${focusedIndex === displayed.length ? 'bg-cc-primary/10' : 'hover:bg-cc-primary/5'
                                                 }`}
                                         >
-                                            {renderMenuItem ? (
-                                                renderMenuItem(labelText, item)
-                                            ) : (
-                                                <span className="truncate">{labelText}</span>
-                                            )}
-                                            {isSelected && !renderMenuItem && <span>✓</span>}
+                                            <AddRounded size={16} />
+                                            <span>Create &ldquo;{query.trim()}&rdquo;</span>
                                         </button>
-                                    )
-                                })
+                                    )}
+                                </>
                             )}
                         </div>
                         {(renderExtraFooter || onCreateNew) && (
                             <div
-                                className={`border-t border-cc-overlay/10 p-1.5 bg-cc-surface ${focusedIndex === displayed.length ? 'bg-cc-overlay/10' : ''
+                                className={`border-t border-cc-overlay/10 p-1.5 bg-cc-surface ${focusedIndex === totalCount - 1 ? 'bg-cc-overlay/10' : ''
                                     }`}
-                                onMouseEnter={() => setFocusedIndex(displayed.length)}
+                                onMouseEnter={() => setFocusedIndex(totalCount - 1)}
                             >
                                 {renderExtraFooter ? (
                                     typeof renderExtraFooter === 'function' ? (
@@ -1743,6 +1874,7 @@ export const SelectPicker = forwardRef(
                 className={`relative ${className}`}
                 style={style}
             >
+                {name && <input type="hidden" name={name} value={String(currentValue ?? '')} disabled={disabled} />}
                 <button
                     type="button"
                     disabled={disabled}
@@ -1754,7 +1886,7 @@ export const SelectPicker = forwardRef(
                         }
                         setOpen((v) => !v)
                     }}
-                    className={`flex h-11 w-full items-center justify-between gap-2 rounded-xl border px-4 text-left text-sm font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open
+                    className={`flex ${sizeClass.split(' ')[0]} w-full items-center justify-between gap-2 rounded-xl border ${sizeClass.split(' ').slice(1).join(' ')} text-left font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open
                         ? 'border-cc-primary/50 bg-cc-surface ring-4 ring-cc-primary/10'
                         : 'border-cc-overlay/10 bg-cc-surface hover:border-cc-primary/30'
                         } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
@@ -1762,14 +1894,14 @@ export const SelectPicker = forwardRef(
                     <span className={selected ? 'truncate text-cc-text' : 'truncate text-cc-muted'}>
                         {selected?.label ?? placeholder}
                     </span>
-                    <div className="flex items-center gap-1">
-                        {cleanable && value !== undefined && value !== null && value !== '' && (
+                    <div className="flex items-center gap-1 shrink-0">
+                        {loading && (
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-cc-primary border-r-transparent mr-1" />
+                        )}
+                        {cleanable && currentValue !== undefined && currentValue !== null && currentValue !== '' && (
                             <span
                                 role="button"
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    onChange?.('')
-                                }}
+                                onClick={handleClear}
                                 className="flex h-6 w-6 items-center justify-center rounded-md text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text"
                             >
                                 <CloseRounded style={{ fontSize: 17 }} />
@@ -1789,13 +1921,22 @@ export const SelectPicker = forwardRef(
     }
 )
 export const DateRangePicker = ({
-    value = [],
+    value: controlledValue,
+    defaultValue = [],
     onChange,
     placeholder = 'Select Date Range',
     className = '',
     style,
+    size = 'md',
+    name,
+    shortcuts,
+    disabledDate,
     ...props
 }) => {
+    const isControlled = controlledValue !== undefined
+    const [innerValue, setInnerValue] = useState(defaultValue)
+    const activeValue = isControlled ? controlledValue : innerValue
+
     const [open, setOpen] = useState(false)
     const [start, setStart] = useState('')
     const [end, setEnd] = useState('')
@@ -1804,16 +1945,16 @@ export const DateRangePicker = ({
     const { coords, updatePosition } = useDropdownPosition(open, triggerRef, 330)
 
     useEffect(() => {
-        if (Array.isArray(value) && value.length === 2) {
-            const a = new Date(value[0])
-            const b = new Date(value[1])
+        if (Array.isArray(activeValue) && activeValue.length === 2) {
+            const a = new Date(activeValue[0])
+            const b = new Date(activeValue[1])
             setStart(!isNaN(a) ? a.toISOString().slice(0, 10) : '')
             setEnd(!isNaN(b) ? b.toISOString().slice(0, 10) : '')
-        } else if (!value?.length) {
+        } else if (!activeValue?.length) {
             setStart('')
             setEnd('')
         }
-    }, [value])
+    }, [activeValue])
 
     useEffect(() => {
         const handler = (e) => {
@@ -1834,6 +1975,8 @@ export const DateRangePicker = ({
         start && end
             ? `${new Date(`${start}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} — ${new Date(`${end}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`
             : placeholder
+
+    const sizeClass = controlSizes[size] || controlSizes.md
 
     const menuContent = (
         <AnimatePresence>
@@ -1864,6 +2007,35 @@ export const DateRangePicker = ({
                         <p className="text-sm font-semibold text-cc-text">Date Range</p>
                         <p className="mt-1 text-xs text-cc-muted">Select the period you want to view</p>
                     </div>
+
+                    {shortcuts && shortcuts.length > 0 && (
+                        <div className="flex items-center gap-1 overflow-x-auto pb-2 mb-3 border-b border-cc-overlay/10 customScrollbar">
+                            {shortcuts.map((sc, scIdx) => (
+                                <button
+                                    key={scIdx}
+                                    type="button"
+                                    onClick={() => {
+                                        const scVal = typeof sc.value === 'function' ? sc.value() : sc.value
+                                        if (Array.isArray(scVal) && scVal.length === 2) {
+                                            const s = new Date(scVal[0])
+                                            const e = new Date(scVal[1])
+                                            const sStr = !isNaN(s) ? s.toISOString().slice(0, 10) : ''
+                                            const eStr = !isNaN(e) ? e.toISOString().slice(0, 10) : ''
+                                            setStart(sStr)
+                                            setEnd(eStr)
+                                            if (!isControlled) setInnerValue([s, e])
+                                            onChange?.([s, e])
+                                            setOpen(false)
+                                        }
+                                    }}
+                                    className="shrink-0 rounded-lg bg-cc-overlay/5 px-2.5 py-1 text-[11px] font-medium text-cc-text hover:bg-cc-primary/15 hover:text-cc-primary transition-colors"
+                                >
+                                    {sc.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-3">
                         <label className="text-[11px] font-semibold uppercase tracking-wider text-cc-muted">
                             From
@@ -1891,6 +2063,7 @@ export const DateRangePicker = ({
                             onClick={() => {
                                 setStart('')
                                 setEnd('')
+                                if (!isControlled) setInnerValue([])
                                 onChange?.([])
                                 setOpen(false)
                             }}
@@ -1904,6 +2077,7 @@ export const DateRangePicker = ({
                             onClick={() => {
                                 const s = new Date(`${start}T00:00:00`)
                                 const e = new Date(`${end}T23:59:59.999`)
+                                if (!isControlled) setInnerValue([s, e])
                                 onChange?.([s, e])
                                 setOpen(false)
                             }}
@@ -1924,20 +2098,21 @@ export const DateRangePicker = ({
             style={style}
             {...filterDomProps(props)}
         >
+            {name && (
+                <>
+                    <input type="hidden" name={`${name}[0]`} value={start} />
+                    <input type="hidden" name={`${name}[1]`} value={end} />
+                </>
+            )}
             <button
                 type="button"
                 onClick={() => {
                     if (!open) updatePosition()
                     setOpen((v) => !v)
                 }}
-                className="flex h-11 w-full min-w-[220px] items-center justify-between gap-3 rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 text-sm font-normal transition-all hover:border-cc-primary/30 focus:border-cc-primary/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15"
+                className={`flex ${sizeClass.split(' ')[0]} w-full min-w-[220px] items-center justify-between gap-3 rounded-xl border border-cc-overlay/10 bg-cc-surface ${sizeClass.split(' ').slice(1).join(' ')} font-normal transition-all hover:border-cc-primary/30 focus:border-cc-primary/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15`}
             >
                 <span className="flex min-w-0 items-center gap-3">
-                    {/* <CalendarTodayRounded
-            size={2}
-            strokeWidth={2}
-            className={open ? 'text-cc-primary' : 'text-cc-muted'}
-          /> */}
                     <span className={start && end ? 'truncate text-cc-text' : 'truncate text-cc-muted'}>
                         {display}
                     </span>
@@ -1956,7 +2131,8 @@ export const DateRangePicker = ({
 export const DatePicker = forwardRef(
     (
         {
-            value,
+            value: controlledValue,
+            defaultValue,
             onChange,
             placeholder = 'Select Date',
             className = '',
@@ -1964,20 +2140,28 @@ export const DatePicker = forwardRef(
             cleanable = true,
             disabled = false,
             format = 'yyyy-MM-dd',
+            size = 'md',
+            name,
+            shortcuts,
+            disabledDate,
             menuStyle,
             ...props
         },
         outerRef
     ) => {
+        const isControlled = controlledValue !== undefined
+        const [innerValue, setInnerValue] = useState(defaultValue)
+        const activeValue = isControlled ? controlledValue : innerValue
+
         const [open, setOpen] = useState(false)
         const triggerRef = useRef(null)
         const menuRef = useRef(null)
 
         const parsedSelectedDate = useMemo(() => {
-            if (!value) return null
-            if (value instanceof Date && !isNaN(value)) return value
-            if (typeof value === 'string') {
-                const dateOnly = value.split('T')[0]
+            if (!activeValue) return null
+            if (activeValue instanceof Date && !isNaN(activeValue)) return activeValue
+            if (typeof activeValue === 'string') {
+                const dateOnly = activeValue.split('T')[0]
                 const parts = dateOnly.split('-')
                 if (parts.length === 3) {
                     const y = parseInt(parts[0], 10)
@@ -1986,11 +2170,11 @@ export const DatePicker = forwardRef(
                     const parsed = new Date(y, m, d)
                     if (!isNaN(parsed)) return parsed
                 }
-                const d = new Date(value)
+                const d = new Date(activeValue)
                 if (!isNaN(d)) return d
             }
             return null
-        }, [value])
+        }, [activeValue])
 
         const [viewDate, setViewDate] = useState(() => {
             return parsedSelectedDate || new Date()
@@ -2046,7 +2230,9 @@ export const DatePicker = forwardRef(
         }
 
         const handleSelectDay = (dayDate) => {
+            if (disabledDate && disabledDate(dayDate)) return
             const formatted = formatValueStr(dayDate)
+            if (!isControlled) setInnerValue(formatted)
             onChange?.(formatted, dayDate)
             handleClose()
         }
@@ -2103,6 +2289,8 @@ export const DatePicker = forwardRef(
             year: 'numeric'
         })
 
+        const sizeClass = controlSizes[size] || controlSizes.md
+
         const menuContent = (
             <AnimatePresence>
                 {open && (
@@ -2147,6 +2335,30 @@ export const DatePicker = forwardRef(
                             </button>
                         </div>
 
+                        {shortcuts && shortcuts.length > 0 && (
+                            <div className="flex items-center gap-1 overflow-x-auto py-2 border-b border-cc-overlay/10 customScrollbar">
+                                {shortcuts.map((sc, scIdx) => (
+                                    <button
+                                        key={scIdx}
+                                        type="button"
+                                        onClick={() => {
+                                            const scDate = typeof sc.value === 'function' ? sc.value() : sc.value
+                                            if (scDate) {
+                                                const d = scDate instanceof Date ? scDate : new Date(scDate)
+                                                if (!isNaN(d)) {
+                                                    setViewDate(d)
+                                                    handleSelectDay(d)
+                                                }
+                                            }
+                                        }}
+                                        className="shrink-0 rounded-lg bg-cc-overlay/5 px-2 py-1 text-[11px] font-medium text-cc-text hover:bg-cc-primary/15 hover:text-cc-primary transition-colors"
+                                    >
+                                        {sc.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-7 gap-1 pt-3 pb-1 text-center text-[11px] font-bold text-cc-muted uppercase tracking-wider">
                             <span>Mo</span>
                             <span>Tu</span>
@@ -2162,19 +2374,23 @@ export const DatePicker = forwardRef(
                                 const cellStr = formatValueStr(cell.date)
                                 const isSelected = selectedStr && cellStr === selectedStr
                                 const isToday = cellStr === todayStr
+                                const isCellDisabled = disabledDate ? disabledDate(cell.date) : false
 
                                 return (
                                     <button
                                         key={idx}
                                         type="button"
+                                        disabled={isCellDisabled}
                                         onClick={() => handleSelectDay(cell.date)}
-                                        className={`flex h-8 w-8 items-center justify-center rounded-xl text-xs transition-all font-medium ${isSelected
-                                            ? 'bg-cc-primary text-cc-on-primary font-bold shadow-md shadow-cc-primary/20'
-                                            : cell.isCurrentMonth
-                                                ? isToday
-                                                    ? 'border border-cc-primary/50 text-cc-primary font-semibold bg-cc-primary/10'
-                                                    : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
-                                                : 'text-cc-subtle hover:bg-cc-overlay/5'
+                                        className={`flex h-8 w-8 items-center justify-center rounded-xl text-xs transition-all font-medium ${isCellDisabled
+                                            ? 'opacity-30 cursor-not-allowed text-cc-muted'
+                                            : isSelected
+                                                ? 'bg-cc-primary text-cc-on-primary font-bold shadow-md shadow-cc-primary/20'
+                                                : cell.isCurrentMonth
+                                                    ? isToday
+                                                        ? 'border border-cc-primary/50 text-cc-primary font-semibold bg-cc-primary/10'
+                                                        : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
+                                                    : 'text-cc-subtle hover:bg-cc-overlay/5'
                                             }`}
                                     >
                                         {cell.dayNum}
@@ -2199,6 +2415,7 @@ export const DatePicker = forwardRef(
                                 <button
                                     type="button"
                                     onClick={() => {
+                                        if (!isControlled) setInnerValue('')
                                         onChange?.('', null)
                                         handleClose()
                                     }}
@@ -2220,6 +2437,7 @@ export const DatePicker = forwardRef(
                 style={style}
                 {...filterDomProps(props)}
             >
+                {name && <input type="hidden" name={name} value={formatValueStr(parsedSelectedDate)} disabled={disabled} />}
                 <button
                     type="button"
                     disabled={disabled}
@@ -2228,7 +2446,7 @@ export const DatePicker = forwardRef(
                         if (!open) updatePosition()
                         setOpen((v) => !v)
                     }}
-                    className={`flex h-11 w-full items-center justify-between gap-2 rounded-xl border px-4 text-left text-sm font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open
+                    className={`flex ${sizeClass.split(' ')[0]} w-full items-center justify-between gap-2 rounded-xl border ${sizeClass.split(' ').slice(1).join(' ')} text-left font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open
                         ? 'border-cc-primary/50 bg-cc-surface ring-4 ring-cc-primary/10'
                         : 'border-cc-overlay/10 bg-cc-surface hover:border-cc-primary/30'
                         } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
@@ -2251,6 +2469,7 @@ export const DatePicker = forwardRef(
                                 role="button"
                                 onClick={(e) => {
                                     e.stopPropagation()
+                                    if (!isControlled) setInnerValue('')
                                     onChange?.('', null)
                                 }}
                                 className="flex h-6 w-6 items-center justify-center rounded-md text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text"
@@ -2275,7 +2494,8 @@ export const DatePicker = forwardRef(
 export const TimePicker = forwardRef(
     (
         {
-            value = '',
+            value: controlledValue,
+            defaultValue = '',
             onChange,
             placeholder = 'Select Time',
             className = '',
@@ -2283,11 +2503,17 @@ export const TimePicker = forwardRef(
             cleanable = true,
             disabled = false,
             is12h = true,
+            size = 'md',
+            name,
             menuStyle,
             ...props
         },
         outerRef
     ) => {
+        const isControlled = controlledValue !== undefined
+        const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue)
+        const value = isControlled ? (controlledValue || '') : uncontrolledValue
+
         const [open, setOpen] = useState(false)
         const triggerRef = useRef(null)
         const menuRef = useRef(null)
@@ -2392,6 +2618,7 @@ export const TimePicker = forwardRef(
             const time24Str = `${String(finalH24).padStart(2, '0')}:${String(mVal).padStart(2, '0')}`
             const time12Str = `${String(h12Val).padStart(2, '0')}:${String(mVal).padStart(2, '0')} ${pVal}`
 
+            if (!isControlled) setUncontrolledValue(time24Str)
             onChange?.(time24Str, {
                 time24: time24Str,
                 time12: time12Str,
@@ -2590,6 +2817,7 @@ export const TimePicker = forwardRef(
                                 <button
                                     type="button"
                                     onClick={() => {
+                                        if (!isControlled) setUncontrolledValue('')
                                         onChange?.('')
                                         handleClose()
                                     }}
@@ -2611,6 +2839,8 @@ export const TimePicker = forwardRef(
             </AnimatePresence>
         )
 
+        const sizeClass = controlSizes[size] || controlSizes.md
+
         return (
             <div
                 ref={triggerRef}
@@ -2618,6 +2848,7 @@ export const TimePicker = forwardRef(
                 style={style}
                 {...filterDomProps(props)}
             >
+                {name && <input type="hidden" name={name} value={value || ''} />}
                 <button
                     type="button"
                     disabled={disabled}
@@ -2626,7 +2857,7 @@ export const TimePicker = forwardRef(
                         if (!open) updatePosition()
                         setOpen((v) => !v)
                     }}
-                    className={`flex h-11 w-full items-center justify-between gap-2 rounded-xl border px-4 text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open
+                    className={`flex ${sizeClass} w-full items-center justify-between gap-2 rounded-xl border px-4 text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open
                         ? 'border-cc-primary/50 bg-cc-surface ring-4 ring-cc-primary/10'
                         : 'border-cc-overlay/10 bg-cc-surface hover:border-cc-primary/30'
                         } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
@@ -2672,7 +2903,32 @@ export const TimePicker = forwardRef(
     }
 )
 
-export const Modal = ({ open, onClose, children, size = 'md', className = '' }) => {
+export const Modal = ({
+    open,
+    onClose,
+    children,
+    size = 'md',
+    closeOnEsc = true,
+    closeOnBackdropClick = true,
+    className = ''
+}) => {
+    useEffect(() => {
+        if (!open) return undefined
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && closeOnEsc) {
+                onClose?.()
+            }
+        }
+        document.addEventListener('keydown', handleKeyDown)
+        const originalOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown)
+            document.body.style.overflow = originalOverflow
+        }
+    }, [open, closeOnEsc, onClose])
+
     if (!open) return null
     const widths = {
         xs: 'max-w-md',
@@ -2689,7 +2945,7 @@ export const Modal = ({ open, onClose, children, size = 'md', className = '' }) 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="absolute inset-0 bg-cc-scrim/60 backdrop-blur-sm"
-                    onClick={onClose}
+                    onClick={closeOnBackdropClick ? onClose : undefined}
                 />
                 <motion.div
                     initial={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -2730,12 +2986,15 @@ Modal.Footer = ({ children, className = '' }) => (
 )
 
 export const InputNumber = ({
-    value = '',
+    value: controlledValue,
+    defaultValue = '',
     onChange,
     min,
     max,
     step = 'any',
     prefix,
+    size = 'md',
+    name,
     disabled = false,
     formatter,
     className = '',
@@ -2744,6 +3003,10 @@ export const InputNumber = ({
     onBlur,
     ...props
 }) => {
+    const isControlled = controlledValue !== undefined
+    const [innerValue, setInnerValue] = useState(defaultValue)
+    const value = isControlled ? controlledValue : innerValue
+
     const [isFocused, setIsFocused] = useState(false)
     const [localStr, setLocalStr] = useState(
         value === '' || value === null || value === undefined ? '' : String(value)
@@ -2767,6 +3030,7 @@ export const InputNumber = ({
         const raw = e.target.value
         if (raw === '' || raw === null || raw === undefined) {
             setLocalStr('')
+            if (!isControlled) setInnerValue('')
             onChange?.('')
             return
         }
@@ -2783,10 +3047,12 @@ export const InputNumber = ({
         setLocalStr(clean)
 
         if (clean === '' || clean === '.' || clean === '-' || clean === '-.') {
+            if (!isControlled) setInnerValue('')
             onChange?.('')
         } else {
             const num = Number(clean)
             if (!Number.isNaN(num)) {
+                if (!isControlled) setInnerValue(num)
                 onChange?.(num)
             }
         }
@@ -2803,6 +3069,7 @@ export const InputNumber = ({
         onBlur?.(e)
         if (localStr === '.' || localStr === '-' || localStr === '-.' || localStr === '') {
             setLocalStr('')
+            if (!isControlled) setInnerValue('')
             onChange?.('')
         } else {
             const num = Number(localStr)
@@ -2810,16 +3077,18 @@ export const InputNumber = ({
                 let finalNum = num
                 if (min !== undefined && num < min) finalNum = min
                 if (max !== undefined && num > max) finalNum = max
-                if (finalNum !== num) {
-                    onChange?.(finalNum)
-                    setLocalStr(String(finalNum))
-                }
+                if (!isControlled) setInnerValue(finalNum)
+                onChange?.(finalNum)
+                setLocalStr(String(finalNum))
             }
         }
     }
 
+    const sizeClass = controlSizes[size] || controlSizes.md
+
     return (
         <div className={`relative flex items-center ${className}`}>
+            {name && <input type="hidden" name={name} value={value} disabled={disabled} />}
             {prefix !== undefined && prefix !== null && (
                 <div className="absolute left-3 z-10 flex items-center text-cc-muted pointer-events-none">
                     {prefix}
@@ -2835,7 +3104,7 @@ export const InputNumber = ({
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 onChange={handleChange}
-                className={`h-11 w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 text-sm font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${prefix !== undefined && prefix !== null ? 'pl-9' : ''}`}
+                className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface ${sizeClass} font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${prefix !== undefined && prefix !== null ? 'pl-9' : ''}`}
             />
         </div>
     )
@@ -2848,10 +3117,17 @@ export const CheckPicker = forwardRef(
     (
         {
             data = [],
-            value = [],
+            value: controlledValue,
+            defaultValue = [],
             onChange,
             placeholder = 'Select...',
             searchable = true,
+            size = 'md',
+            name,
+            tagDisplay = false,
+            loading = false,
+            onSearch,
+            groupBy,
             className = '',
             menuMaxHeight = 260,
             menuWidth,
@@ -2866,6 +3142,12 @@ export const CheckPicker = forwardRef(
         outerRef
     ) => {
         const items = normalizePickerData(data)
+        const isControlled = controlledValue !== undefined
+        const [innerValue, setInnerValue] = useState(defaultValue)
+        const selectedValues = Array.isArray(isControlled ? controlledValue : innerValue)
+            ? (isControlled ? controlledValue : innerValue)
+            : []
+
         const [open, setOpen] = useState(false)
         const [query, setQuery] = useState('')
         const [focusedIndex, setFocusedIndex] = useState(-1)
@@ -2874,7 +3156,6 @@ export const CheckPicker = forwardRef(
         const listRef = useRef(null)
         const resolvedMenuWidth = menuStyle?.width ?? menuWidth ?? null
         const { coords, updatePosition } = useDropdownPosition(open, triggerRef, resolvedMenuWidth)
-        const selectedValues = Array.isArray(value) ? value : []
 
         const handleClose = useCallback(() => {
             setOpen(false)
@@ -2917,6 +3198,12 @@ export const CheckPicker = forwardRef(
             [items, query]
         )
 
+        const handleSearchChange = (e) => {
+            const val = e.target.value
+            setQuery(val)
+            onSearch?.(val)
+        }
+
         useEffect(() => {
             if (open) {
                 setFocusedIndex(filtered.length > 0 ? 0 : -1)
@@ -2934,9 +3221,11 @@ export const CheckPicker = forwardRef(
 
         const toggle = (v) => {
             const exists = selectedValues.some((x) => String(x) === String(v))
-            onChange?.(
-                exists ? selectedValues.filter((x) => String(x) !== String(v)) : [...selectedValues, v]
-            )
+            const next = exists
+                ? selectedValues.filter((x) => String(x) !== String(v))
+                : [...selectedValues, v]
+            if (!isControlled) setInnerValue(next)
+            onChange?.(next)
         }
 
         const handleKeyDown = (e) => {
@@ -2977,9 +3266,9 @@ export const CheckPicker = forwardRef(
             }
         }
 
-        const labels = items
-            .filter((i) => selectedValues.some((v) => String(v) === String(i.value)))
-            .map((i) => i.label)
+        const selectedItems = items.filter((i) => selectedValues.some((v) => String(v) === String(i.value)))
+        const labels = selectedItems.map((i) => i.label)
+        const sizeClass = controlSizes[size] || controlSizes.md
 
         const menuContent = (
             <AnimatePresence>
@@ -3006,14 +3295,19 @@ export const CheckPicker = forwardRef(
                     >
                         {searchable && (
                             <div className="border-b border-cc-overlay/10 p-2">
-                                <input
-                                    autoFocus
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder="Search..."
-                                    className="h-10 w-full rounded-xl border border-cc-overlay/10 bg-cc-overlay/5 px-3 text-sm text-cc-text outline-none"
-                                />
+                                <div className="flex items-center rounded-xl border border-cc-overlay/10 bg-cc-overlay/5 px-3">
+                                    <input
+                                        autoFocus
+                                        value={query}
+                                        onChange={handleSearchChange}
+                                        onKeyDown={handleKeyDown}
+                                        placeholder="Search..."
+                                        className="h-10 w-full bg-transparent text-sm text-cc-text outline-none"
+                                    />
+                                    {loading && (
+                                        <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-cc-primary border-r-transparent" />
+                                    )}
+                                </div>
                             </div>
                         )}
                         <div
@@ -3027,27 +3321,35 @@ export const CheckPicker = forwardRef(
                                 filtered.map((item, idx) => {
                                     const checked = selectedValues.some((v) => String(v) === String(item.value))
                                     const isFocused = idx === focusedIndex
+                                    const isGroupHeader = groupBy && (idx === 0 || item[groupBy] !== filtered[idx - 1][groupBy])
+
                                     return (
-                                        <button
-                                            key={String(item.value)}
-                                            type="button"
-                                            onMouseEnter={() => setFocusedIndex(idx)}
-                                            onClick={() => toggle(item.value)}
-                                            className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm ${checked
-                                                ? 'bg-cc-primary/10 text-cc-primary'
-                                                : isFocused
-                                                    ? 'bg-cc-overlay/10 text-cc-text'
-                                                    : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
-                                                }`}
-                                        >
-                                            <span className="truncate">{item.label ?? item.value}</span>
-                                            <span
-                                                className={`h-5 w-5 rounded-md border flex items-center justify-center ${checked ? 'border-cc-primary bg-cc-primary text-cc-on-primary' : 'border-cc-overlay/15'
+                                        <React.Fragment key={String(item.value)}>
+                                            {isGroupHeader && item[groupBy] && (
+                                                <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-cc-muted select-none">
+                                                    {item[groupBy]}
+                                                </div>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onMouseEnter={() => setFocusedIndex(idx)}
+                                                onClick={() => toggle(item.value)}
+                                                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm ${checked
+                                                    ? 'bg-cc-primary/10 text-cc-primary'
+                                                    : isFocused
+                                                        ? 'bg-cc-overlay/10 text-cc-text'
+                                                        : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
                                                     }`}
                                             >
-                                                {checked ? '✓' : ''}
-                                            </span>
-                                        </button>
+                                                <span className="truncate">{item.label ?? item.value}</span>
+                                                <span
+                                                    className={`h-5 w-5 rounded-md border flex items-center justify-center ${checked ? 'border-cc-primary bg-cc-primary text-cc-on-primary' : 'border-cc-overlay/15'
+                                                        }`}
+                                                >
+                                                    {checked ? '✓' : ''}
+                                                </span>
+                                            </button>
+                                        </React.Fragment>
                                     )
                                 })
                             )}
@@ -3087,6 +3389,9 @@ export const CheckPicker = forwardRef(
 
         return (
             <div ref={triggerRef} className={`relative ${className}`} {...filterDomProps(props)}>
+                {name && selectedValues.map((v, i) => (
+                    <input key={i} type="hidden" name={name} value={v} disabled={disabled} />
+                ))}
                 <button
                     type="button"
                     disabled={disabled}
@@ -3096,17 +3401,45 @@ export const CheckPicker = forwardRef(
                         if (!open) updatePosition()
                         setOpen((v) => !v)
                     }}
-                    className={`flex min-h-11 w-full items-center justify-between gap-2 rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 py-2 text-left text-sm font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open ? 'border-cc-primary/50 ring-4 ring-cc-primary/10' : 'hover:border-cc-primary/30'
+                    className={`flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl border border-cc-overlay/10 bg-cc-surface ${sizeClass.split(' ').slice(1).join(' ')} py-2 text-left text-sm font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open ? 'border-cc-primary/50 ring-4 ring-cc-primary/10' : 'hover:border-cc-primary/30'
                         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                    <span className={labels.length ? 'truncate text-cc-text' : 'truncate text-cc-muted'}>
-                        {labels.length ? labels.join(', ') : placeholder}
-                    </span>
-                    <KeyboardArrowDownRounded
-                        size={20}
-                        strokeWidth={2}
-                        className={`shrink-0 text-cc-muted transition-transform ${open ? 'rotate-180 text-cc-primary' : ''}`}
-                    />
+                    <div className="flex flex-wrap items-center gap-1.5 min-w-0 flex-1">
+                        {tagDisplay && selectedItems.length > 0 ? (
+                            selectedItems.map((item) => (
+                                <span
+                                    key={String(item.value)}
+                                    className="inline-flex items-center gap-1 rounded-md bg-cc-primary/10 px-2 py-0.5 text-xs font-medium text-cc-primary"
+                                >
+                                    <span>{item.label}</span>
+                                    <span
+                                        role="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            toggle(item.value)
+                                        }}
+                                        className="hover:opacity-75 cursor-pointer"
+                                    >
+                                        ×
+                                    </span>
+                                </span>
+                            ))
+                        ) : (
+                            <span className={labels.length ? 'truncate text-cc-text' : 'truncate text-cc-muted'}>
+                                {labels.length ? labels.join(', ') : placeholder}
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                        {loading && (
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-cc-primary border-r-transparent mr-1" />
+                        )}
+                        <KeyboardArrowDownRounded
+                            size={20}
+                            strokeWidth={2}
+                            className={`shrink-0 text-cc-muted transition-transform ${open ? 'rotate-180 text-cc-primary' : ''}`}
+                        />
+                    </div>
                 </button>
                 <ThemedPortal>{menuContent}</ThemedPortal>
             </div>
@@ -3117,66 +3450,102 @@ export const CheckPicker = forwardRef(
 export const TagPicker = CheckPicker
 
 export const Toggle = ({
-    checked = false,
+    checked: controlledChecked,
+    defaultChecked = false,
     onChange,
     checkedChildren,
     unCheckedChildren,
     disabled = false,
     size = 'md',
+    name,
     className = ''
-}) => (
-    <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        disabled={disabled}
-        onClick={() => onChange?.(!checked)}
-        className={`relative inline-flex items-center shrink-0 rounded-full border transition-all duration-300 focus:outline-none ${size === 'lg' ? 'h-8 w-16 p-1' : 'h-6 w-12 p-0.5'
-            } ${checked
-                ? 'border-cc-primary bg-cc-primary text-cc-on-primary shadow-md shadow-cc-primary/20'
-                : 'border-cc-overlay/15 bg-cc-surface text-cc-muted hover:border-cc-overlay/25'
-            } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
-    >
-        <span
-            className={`rounded-full shadow-md transition-all duration-300 ease-out transform ${size === 'lg' ? 'h-6 w-6' : 'h-5 w-5'
-                } ${checked
-                    ? size === 'lg'
-                        ? 'translate-x-8 bg-cc-on-primary'
-                        : 'translate-x-6 bg-cc-on-primary'
-                    : 'translate-x-0.5 bg-cc-muted'
-                }`}
-        />
-        {(checkedChildren || unCheckedChildren) && (
-            <span
-                className={`absolute inset-0 flex items-center ${checked ? 'justify-start pl-2 text-cc-primary' : 'justify-end pr-2 text-cc-muted'
-                    } text-[9px] font-bold pointer-events-none select-none transition-opacity duration-200`}
+}) => {
+    const isControlled = controlledChecked !== undefined
+    const [innerChecked, setInnerChecked] = useState(defaultChecked)
+    const checked = isControlled ? controlledChecked : innerChecked
+
+    const handleToggle = () => {
+        if (disabled) return
+        const next = !checked
+        if (!isControlled) setInnerChecked(next)
+        onChange?.(next)
+    }
+
+    return (
+        <>
+            {name && <input type="hidden" name={name} value={checked ? 'on' : ''} disabled={disabled} />}
+            <button
+                type="button"
+                role="switch"
+                aria-checked={checked}
+                disabled={disabled}
+                onClick={handleToggle}
+                className={`relative inline-flex items-center shrink-0 rounded-full border transition-all duration-300 focus:outline-none ${size === 'lg' ? 'h-8 w-16 p-1' : 'h-6 w-12 p-0.5'
+                    } ${checked
+                        ? 'border-cc-primary bg-cc-primary text-cc-on-primary shadow-md shadow-cc-primary/20'
+                        : 'border-cc-overlay/15 bg-cc-surface text-cc-muted hover:border-cc-overlay/25'
+                    } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
             >
-                {checked ? checkedChildren : unCheckedChildren}
-            </span>
-        )}
-    </button>
-)
+                <span
+                    className={`rounded-full shadow-md transition-all duration-300 ease-out transform ${size === 'lg' ? 'h-6 w-6' : 'h-5 w-5'
+                        } ${checked
+                            ? size === 'lg'
+                                ? 'translate-x-8 bg-cc-on-primary'
+                                : 'translate-x-6 bg-cc-on-primary'
+                            : 'translate-x-0.5 bg-cc-muted'
+                        }`}
+                />
+                {(checkedChildren || unCheckedChildren) && (
+                    <span
+                        className={`absolute inset-0 flex items-center ${checked ? 'justify-start pl-2 text-cc-primary' : 'justify-end pr-2 text-cc-muted'
+                            } text-[9px] font-bold pointer-events-none select-none transition-opacity duration-200`}
+                    >
+                        {checked ? checkedChildren : unCheckedChildren}
+                    </span>
+                )}
+            </button>
+        </>
+    )
+}
 
 export const Checkbox = ({
-    checked = false,
+    checked: controlledChecked,
+    defaultChecked = false,
     onChange,
     children,
     disabled = false,
+    name,
+    value,
     className = ''
-}) => (
-    <label
-        className={`inline-flex items-center gap-2 cursor-pointer text-sm text-cc-text ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
-    >
-        <input
-            type="checkbox"
-            checked={!!checked}
-            disabled={disabled}
-            onChange={(e) => onChange?.(e.target.checked, e)}
-            className="h-4 w-4 accent-cc-primary"
-        />
-        {children}
-    </label>
-)
+}) => {
+    const isControlled = controlledChecked !== undefined
+    const [innerChecked, setInnerChecked] = useState(defaultChecked)
+    const checked = isControlled ? controlledChecked : innerChecked
+
+    const handleChange = (e) => {
+        if (disabled) return
+        const next = e.target.checked
+        if (!isControlled) setInnerChecked(next)
+        onChange?.(next, e)
+    }
+
+    return (
+        <label
+            className={`inline-flex items-center gap-2 cursor-pointer text-sm text-cc-text ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+        >
+            <input
+                type="checkbox"
+                name={name}
+                value={value}
+                checked={!!checked}
+                disabled={disabled}
+                onChange={handleChange}
+                className="h-4 w-4 accent-cc-primary"
+            />
+            {children}
+        </label>
+    )
+}
 
 export const Uploader = ({
     onChange,
@@ -3398,207 +3767,132 @@ export const Textarea = forwardRef(
 
 
 export const PasswordInput = forwardRef(
-
     (
-
         {
-
-            value = '',
-
+            value: controlledValue,
+            defaultValue,
             onChange,
-
             placeholder = 'Password',
-
             className = '',
-
             disabled = false,
-
             visible: visibleProp,
-
             onVisibleChange,
-
             showToggle = true,
-
+            size = 'md',
+            name,
             ...props
-
         },
-
         ref
-
     ) => {
+        const isControlled = controlledValue !== undefined
+        const [innerValue, setInnerValue] = useState(defaultValue ?? '')
+        const currentValue = isControlled ? (controlledValue ?? '') : innerValue
 
         const [innerVisible, setInnerVisible] = useState(false)
-
-        const isControlled = visibleProp !== undefined
-
-        const visible = isControlled ? visibleProp : innerVisible
-
-
+        const isVisibleControlled = visibleProp !== undefined
+        const visible = isVisibleControlled ? visibleProp : innerVisible
 
         const toggle = () => {
-
-            if (!isControlled) setInnerVisible((v) => !v)
-
+            if (!isVisibleControlled) setInnerVisible((v) => !v)
             onVisibleChange?.(!visible)
-
         }
 
-
+        const sizeClass = controlSizes[size] || controlSizes.md
 
         return (
-
             <div className={`relative flex w-full items-center ${className}`}>
-
                 <input
-
-                    {...props}
-
+                    {...filterDomProps(props)}
                     ref={ref}
-
                     type={visible ? 'text' : 'password'}
-
-                    value={value ?? ''}
-
+                    name={name}
+                    value={currentValue}
                     disabled={disabled}
-
                     placeholder={placeholder}
-
-                    onChange={(e) => onChange?.(e.target.value, e)}
-
-                    className={`${fieldClass} pr-11`}
-
+                    onChange={(e) => {
+                        if (!isControlled) setInnerValue(e.target.value)
+                        onChange?.(e.target.value, e)
+                    }}
+                    className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 text-sm font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${sizeClass} pr-11`}
                 />
-
                 {showToggle && (
-
                     <button
-
                         type="button"
-
                         tabIndex={-1}
-
                         disabled={disabled}
-
                         onClick={toggle}
-
                         aria-label={visible ? 'Hide password' : 'Show password'}
-
                         className="absolute right-1.5 flex h-8 w-8 items-center justify-center rounded-xl text-cc-muted transition-colors hover:bg-cc-overlay/10 hover:text-cc-text"
-
                     >
-
                         {visible ? <EyeOffRoundedIcon size={17} /> : <EyeRoundedIcon size={17} />}
-
                     </button>
-
                 )}
-
             </div>
-
         )
-
     }
-
 )
 
-
-
 export const SearchInput = forwardRef(
-
     (
-
         {
-
-            value = '',
-
+            value: controlledValue,
+            defaultValue,
             onChange,
-
             onClear,
-
             placeholder = 'Search...',
-
             className = '',
-
             disabled = false,
-
             cleanable = true,
-
+            size = 'md',
+            name,
             ...props
-
         },
-
         ref
-
     ) => {
+        const isControlled = controlledValue !== undefined
+        const [innerValue, setInnerValue] = useState(defaultValue ?? '')
+        const text = isControlled ? (controlledValue ?? '') : innerValue
+        const sizeClass = controlSizes[size] || controlSizes.md
 
-        const text = value ?? ''
-
-
+        const handleClear = () => {
+            if (!isControlled) setInnerValue('')
+            onChange?.('', null)
+            onClear?.()
+        }
 
         return (
-
             <div className={`relative flex w-full items-center ${className}`}>
-
                 <SearchRoundedIcon
-
                     size={17}
-
                     className="pointer-events-none absolute left-3.5 text-cc-muted"
-
                 />
-
                 <input
-
-                    {...props}
-
+                    {...filterDomProps(props)}
                     ref={ref}
-
                     type="text"
-
+                    name={name}
                     value={text}
-
                     disabled={disabled}
-
                     placeholder={placeholder}
-
-                    onChange={(e) => onChange?.(e.target.value, e)}
-
-                    className={`${fieldClass} pl-10 ${cleanable && text ? 'pr-10' : ''}`}
-
+                    onChange={(e) => {
+                        if (!isControlled) setInnerValue(e.target.value)
+                        onChange?.(e.target.value, e)
+                    }}
+                    className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 text-sm font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${sizeClass} pl-10 ${cleanable && text ? 'pr-10' : ''}`}
                 />
-
                 {cleanable && text && (
-
                     <button
-
                         type="button"
-
                         aria-label="Clear search"
-
-                        onClick={() => {
-
-                            onChange?.('', null)
-
-                            onClear?.()
-
-                        }}
-
+                        onClick={handleClear}
                         className="absolute right-1.5 flex h-8 w-8 items-center justify-center rounded-xl text-cc-muted transition-colors hover:bg-cc-overlay/10 hover:text-cc-text"
-
                     >
-
                         <CloseRounded size={15} />
-
                     </button>
-
                 )}
-
             </div>
-
         )
-
     }
-
 )
 
 
@@ -4060,14 +4354,33 @@ export const Tooltip = ({
 
 
 export const Whisper = ({ children, speaker, placement = 'top', className = '' }) => (
-
     <Tooltip speaker={speaker} placement={placement} className={className}>
-
         {children}
-
     </Tooltip>
-
 )
+
+/* ===================== NEW CORE COMPONENTS (v1.2.0) ===================== */
+export { Tabs } from './Tabs.jsx'
+export { Drawer } from './Drawer.jsx'
+export { Badge, Tag, Chip } from './Badge.jsx'
+export { Pagination } from './Pagination.jsx'
+export { DropdownMenu } from './DropdownMenu.jsx'
+export { Accordion } from './Accordion.jsx'
+export { Divider } from './Divider.jsx'
+export { Rate } from './Rate.jsx'
+export { ButtonGroup } from './ButtonGroup.jsx'
+export { Avatar, AvatarGroup } from './Avatar.jsx'
+
+import { Tabs } from './Tabs.jsx'
+import { Drawer } from './Drawer.jsx'
+import { Badge, Tag, Chip } from './Badge.jsx'
+import { Pagination } from './Pagination.jsx'
+import { DropdownMenu } from './DropdownMenu.jsx'
+import { Accordion } from './Accordion.jsx'
+import { Divider } from './Divider.jsx'
+import { Rate } from './Rate.jsx'
+import { ButtonGroup } from './ButtonGroup.jsx'
+import { Avatar, AvatarGroup } from './Avatar.jsx'
 
 /* ===================== PACKAGE EXPORTS ===================== */
 
@@ -4078,5 +4391,7 @@ export default {
     DateRangePicker, DatePicker, TimePicker, Modal, Toggle, Checkbox,
     Uploader, Animation,
     Textarea, PasswordInput, SearchInput, Radio, RadioGroup, Slider,
-    Tooltip, Whisper
+    Tooltip, Whisper,
+    Tabs, Drawer, Badge, Tag, Chip, Pagination, DropdownMenu,
+    Accordion, Divider, Rate, ButtonGroup, Avatar, AvatarGroup
 }
