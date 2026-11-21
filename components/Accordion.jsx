@@ -10,18 +10,20 @@ export const Accordion = ({
     defaultActiveKey,
     onChange,
     accordion = true, // If true, only one panel open at once
+    multiple,
     className = '',
     children
 }) => {
+    const isSingle = multiple !== undefined ? !multiple : accordion
     const isControlled = controlledKey !== undefined
     const [innerKey, setInnerKey] = useState(
         defaultActiveKey !== undefined
-            ? accordion
+            ? isSingle
                 ? defaultActiveKey
                 : Array.isArray(defaultActiveKey)
                     ? defaultActiveKey
                     : [defaultActiveKey]
-            : accordion
+            : isSingle
                 ? null
                 : []
     )
@@ -30,7 +32,7 @@ export const Accordion = ({
 
     const toggle = (key) => {
         let next
-        if (accordion) {
+        if (isSingle) {
             next = currentKey === key ? null : key
         } else {
             const list = Array.isArray(currentKey) ? currentKey : currentKey ? [currentKey] : []
@@ -42,7 +44,7 @@ export const Accordion = ({
     }
 
     const isExpanded = (key) => {
-        if (accordion) return currentKey === key
+        if (isSingle) return currentKey === key
         return Array.isArray(currentKey) ? currentKey.includes(key) : currentKey === key
     }
 
@@ -113,5 +115,7 @@ Accordion.Body = ({ className = '', children }) => {
         </AnimatePresence>
     )
 }
+
+Accordion.Panel = Accordion.Item
 
 export default Accordion

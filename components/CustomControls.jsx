@@ -277,9 +277,7 @@ export const FormField = ({
 
 
 const normalizeOptions = (options) =>
-
-    options.map((option) =>
-
+    (Array.isArray(options) ? options : []).map((option) =>
         option !== null && typeof option === 'object'
 
             ? {
@@ -1629,17 +1627,18 @@ export const SelectPicker = forwardRef(
             return () => document.removeEventListener('mousedown', handler)
         }, [handleClose])
 
-        const selected = data.find((item) => String(item?.value) === String(currentValue))
+        const rawData = Array.isArray(data) ? data : []
+        const selected = rawData.find((item) => String(item?.value) === String(currentValue))
 
         const filtered = useMemo(() => {
-            if (!searchable || !query) return data
+            if (!searchable || !query) return rawData
             const q = query.toLowerCase()
-            return data.filter((item) =>
+            return rawData.filter((item) =>
                 String(item?.label ?? item?.value ?? '')
                     .toLowerCase()
                     .includes(q)
             )
-        }, [data, query, searchable])
+        }, [rawData, query, searchable])
 
         const displayed = filtered
 
@@ -1661,7 +1660,7 @@ export const SelectPicker = forwardRef(
             onChange?.('', null)
         }
 
-        const hasExactMatch = data.some((i) => String(i?.label || i?.value).toLowerCase() === query.trim().toLowerCase())
+        const hasExactMatch = rawData.some((i) => String(i?.label || i?.value).toLowerCase() === query.trim().toLowerCase())
         const showCreatable = creatable && query.trim() !== '' && !hasExactMatch
 
         const extraCount = (renderExtraFooter || onCreateNew ? 1 : 0) + (showCreatable ? 1 : 0)
@@ -3111,7 +3110,7 @@ export const InputNumber = ({
 }
 
 const normalizePickerData = (data = []) =>
-    data.map((item) => (typeof item === 'object' ? item : { label: String(item), value: item }))
+    (Array.isArray(data) ? data : []).map((item) => (typeof item === 'object' && item !== null ? item : { label: String(item), value: item }))
 
 export const CheckPicker = forwardRef(
     (
@@ -3681,87 +3680,54 @@ export const Animation = {
 
 
 export const Textarea = forwardRef(
-
     (
-
         {
-
-            value = '',
-
+            value: controlledValue,
+            defaultValue,
             onChange,
-
             rows = 4,
-
             placeholder,
-
             className = '',
-
             disabled = false,
-
             resize = true,
-
             maxLength,
-
             showCount = false,
-
+            name,
             ...props
-
         },
-
         ref
-
     ) => {
-
-        const text = value ?? ''
-
-
+        const isControlled = controlledValue !== undefined
+        const [innerValue, setInnerValue] = useState(defaultValue ?? '')
+        const text = isControlled ? (controlledValue ?? '') : innerValue
 
         return (
-
             <div className={`relative w-full ${className}`}>
-
                 <textarea
-
-                    {...props}
-
+                    {...filterDomProps(props)}
                     ref={ref}
-
+                    name={name}
                     rows={rows}
-
                     value={text}
-
                     maxLength={maxLength}
-
                     disabled={disabled}
-
                     placeholder={placeholder}
-
-                    onChange={(e) => onChange?.(e.target.value, e)}
-
+                    onChange={(e) => {
+                        if (!isControlled) setInnerValue(e.target.value)
+                        onChange?.(e.target.value, e)
+                    }}
                     className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 py-3 text-sm font-normal leading-relaxed text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${resize ? 'resize-y' : 'resize-none'
-
                         } ${showCount ? 'pb-7' : ''}`}
-
                 />
-
                 {showCount && (
-
                     <span className="pointer-events-none absolute bottom-2 right-3 text-[11px] font-medium text-cc-subtle">
-
                         {String(text).length}
-
                         {maxLength ? ` / ${maxLength}` : ''}
-
                     </span>
-
                 )}
-
             </div>
-
         )
-
     }
-
 )
 
 

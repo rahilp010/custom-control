@@ -47,12 +47,39 @@ const listVariants = {
 
 Tabs.List = ({ className = '', children }) => {
     const context = useContext(TabsContext)
-    const { orientation = 'horizontal', variant = 'line' } = context || {}
+    const { orientation = 'horizontal', variant = 'line', activeValue, handleSelect } = context || {}
+
+    const handleKeyDown = (e) => {
+        const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]:not([disabled])'))
+        if (!tabs.length) return
+        const activeIndex = tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true')
+        let targetIndex = -1
+
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.preventDefault()
+            targetIndex = (activeIndex + 1) % tabs.length
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault()
+            targetIndex = (activeIndex - 1 + tabs.length) % tabs.length
+        } else if (e.key === 'Home') {
+            e.preventDefault()
+            targetIndex = 0
+        } else if (e.key === 'End') {
+            e.preventDefault()
+            targetIndex = tabs.length - 1
+        }
+
+        if (targetIndex >= 0) {
+            tabs[targetIndex].focus()
+            tabs[targetIndex].click()
+        }
+    }
 
     return (
         <div
             role="tablist"
             aria-orientation={orientation}
+            onKeyDown={handleKeyDown}
             className={`flex ${orientation === 'vertical' ? 'flex-col items-stretch' : 'flex-row items-center flex-wrap'} ${listVariants[variant] || listVariants.line} ${className}`}
         >
             {children}

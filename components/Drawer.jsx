@@ -10,6 +10,7 @@ export const Drawer = ({
     size = 'md', // 'xs' | 'sm' | 'md' | 'lg' | 'full'
     closeOnEsc = true,
     closeOnBackdropClick = true,
+    bodyLock = true,
     className = '',
     children
 }) => {
@@ -21,14 +22,20 @@ export const Drawer = ({
             }
         }
         document.addEventListener('keydown', handleKeyDown)
-        const originalOverflow = document.body.style.overflow
-        document.body.style.overflow = 'hidden'
+        
+        let originalOverflow = ''
+        if (bodyLock && typeof document !== 'undefined') {
+            originalOverflow = document.body.style.overflow
+            document.body.style.overflow = 'hidden'
+        }
 
         return () => {
             document.removeEventListener('keydown', handleKeyDown)
-            document.body.style.overflow = originalOverflow
+            if (bodyLock && typeof document !== 'undefined') {
+                document.body.style.overflow = originalOverflow
+            }
         }
-    }, [open, closeOnEsc, onClose])
+    }, [open, closeOnEsc, onClose, bodyLock])
 
     const widthClasses = {
         xs: 'max-w-xs',

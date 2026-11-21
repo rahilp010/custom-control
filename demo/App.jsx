@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   CustomControlsProvider,
   Input,
@@ -59,6 +60,29 @@ const COLOR_PRESETS = [
 function ComponentCard({ title, id, description, controls, code, children }) {
   const [showCode, setShowCode] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [isRevealed, setIsRevealed] = useState(false)
+  const cardRef = useRef(null)
+  const reduceMotion = useReducedMotion()
+
+  useEffect(() => {
+    const card = cardRef.current
+    if (!card) return
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsRevealed(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsRevealed(true)
+        observer.unobserve(card)
+      }
+    }, { threshold: 0.08 })
+
+    observer.observe(card)
+    return () => observer.disconnect()
+  }, [])
 
   const handleCopy = () => {
     if (code) {
@@ -69,9 +93,12 @@ function ComponentCard({ title, id, description, controls, code, children }) {
   }
 
   return (
-    <div
+    <motion.div
+      ref={cardRef}
       id={id}
-      className="scroll-mt-28 group rounded-[28px] border border-white/60 bg-white/85 shadow-[0_8px_32px_rgba(0,0,0,0.04)] transition-[transform,box-shadow,background-color] duration-300 ease-out motion-reduce:transition-none hover:bg-white hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)] hover:-translate-y-0.5"
+      animate={{ opacity: isRevealed ? 1 : 0, y: isRevealed || reduceMotion ? 0 : 18 }}
+      transition={{ duration: reduceMotion ? 0.18 : 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="scroll-mt-28 group rounded-[28px] border border-white/60 bg-white/85 shadow-[0_8px_32px_rgba(0,0,0,0.04)] transition-[box-shadow,background-color] duration-300 ease-out hover:bg-white hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)]"
     >
       {/* Header */}
       <div className="rounded-t-[27px] border-b border-black/[0.04] bg-white/30 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
@@ -137,7 +164,7 @@ function ComponentCard({ title, id, description, controls, code, children }) {
           </pre>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -1628,39 +1655,39 @@ export default function App() {
             fontFamily: `-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif`
           }}
         >
-          {/* Sticky glass header */}
-          <header className="sticky top-0 z-40 border-b border-white/50 bg-white/95 shadow-[0_1px_0_rgba(0,0,0,0.03)]">
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-cc-primary text-cc-on-primary font-bold text-sm shadow-lg shadow-cc-primary/30">
+          <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+            <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-cc-primary text-sm font-bold text-cc-on-primary shadow-sm">
                   CC
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h1 className="text-[15px] font-semibold tracking-[-0.01em] text-slate-900">
+                    <h1 className="truncate text-sm font-bold tracking-tight text-slate-900 sm:text-[15px]">
                       @rahilp010/custom-control
                     </h1>
-                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-600 border border-emerald-500/20">
+                    <span className="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                       v1.2.0
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 hidden sm:block tracking-wide">
-                    Interactive Live Component Showcase
+                  <p className="mt-0.5 hidden text-[11px] tracking-wide text-slate-500 sm:block">
+                    Interactive component playground
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Size */}
-                <div className="flex items-center rounded-2xl border border-black/8 bg-white/90 p-0.5 text-xs font-medium">
+              <div className="flex flex-wrap items-center justify-between gap-2.5 lg:justify-end">
+                <div role="group" aria-label="Default control size" className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
+                  <span className="px-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Size</span>
                   {['sm', 'md', 'lg'].map((sz) => (
                     <button
                       key={sz}
                       type="button"
                       onClick={() => setGlobalSize(sz)}
-                      className={`px-3 py-1.5 rounded-xl uppercase tracking-wider transition-all duration-200 ${globalSize === sz
-                        ? 'bg-white text-slate-900 shadow-sm font-semibold'
-                        : 'text-slate-500 hover:text-slate-800'
+                      aria-pressed={globalSize === sz}
+                      className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold uppercase transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cc-primary/40 ${globalSize === sz
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-500 hover:bg-white/70 hover:text-slate-800'
                         }`}
                     >
                       {sz}
@@ -1668,17 +1695,17 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* Accent colors */}
-                <div className="flex items-center gap-2 rounded-2xl border border-black/8 bg-white/90 px-3 py-1.5">
-                  <span className="text-[11px] font-medium text-slate-500 hidden md:inline">Accent</span>
+                <div role="group" aria-label="Accent color" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Accent</span>
                   <div className="flex items-center gap-1.5">
                     {COLOR_PRESETS.map((p) => (
                       <button
                         key={p.hex}
                         type="button"
                         onClick={() => setAccentColor(p.hex)}
-                        title={p.name}
-                        className={`h-5 w-5 rounded-full transition-transform duration-200 hover:scale-110 ${accentColor === p.hex ? 'ring-2 ring-slate-900/20 scale-110' : ''
+                        aria-label={`Set accent color to ${p.name}`}
+                        aria-pressed={accentColor === p.hex}
+                        className={`h-4 w-4 rounded-full transition-transform duration-150 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-500 ${accentColor === p.hex ? 'ring-2 ring-offset-1 ring-slate-500/50' : ''
                           }`}
                         style={{ backgroundColor: p.hex }}
                       />
@@ -1687,28 +1714,30 @@ export default function App() {
                       type="color"
                       value={accentColor}
                       onChange={(e) => setAccentColor(e.target.value)}
-                      title="Custom Color"
-                      className="h-5 w-5 rounded-full border-0 cursor-pointer p-0 bg-transparent"
+                      aria-label="Choose a custom accent color"
+                      className="h-5 w-5 cursor-pointer rounded-full border border-slate-200 bg-transparent p-0"
                     />
                   </div>
                 </div>
 
-                <a
-                  href="https://www.npmjs.com/package/@rahilp010/custom-control"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-red-500 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-600 transition-all duration-200"
-                >
-                  npm
-                </a>
-                <a
-                  href="https://github.com/rahilp010/custom-control"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-slate-900 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 transition-all duration-200"
-                >
-                  GitHub
-                </a>
+                <div className="flex items-center gap-1.5">
+                  <a
+                    href="https://www.npmjs.com/package/@rahilp010/custom-control"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-9 items-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cc-primary/40"
+                  >
+                    npm
+                  </a>
+                  <a
+                    href="https://github.com/rahilp010/custom-control"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-9 items-center rounded-xl bg-slate-900 px-3 text-xs font-semibold text-white transition-colors hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                  >
+                    GitHub
+                  </a>
+                </div>
               </div>
             </div>
           </header>

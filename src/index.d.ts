@@ -609,6 +609,7 @@ export interface AccordionItemProps {
 }
 export interface AccordionComponent extends React.FC<AccordionProps> {
     Item: React.FC<AccordionItemProps>
+    Panel: React.FC<AccordionItemProps>
     Header: React.FC<{ children?: React.ReactNode; className?: string }>
     Body: React.FC<{ children?: React.ReactNode; className?: string }>
 }

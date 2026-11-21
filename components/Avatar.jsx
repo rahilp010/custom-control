@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 const avatarSizes = {
+    xs: 'h-6 w-6 text-[10px]',
     sm: 'h-7 w-7 text-xs',
     md: 'h-9 w-9 text-sm',
     lg: 'h-11 w-11 text-base',

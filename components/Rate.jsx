@@ -46,13 +46,35 @@ export const Rate = ({
         setHoverValue(null)
     }
 
+    const handleKeyDown = (e) => {
+        if (disabled || readOnly) return
+        const step = allowHalf ? 0.5 : 1
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+            e.preventDefault()
+            const next = Math.min(max, Math.round(((currentValue || 0) + step) * 2) / 2)
+            handleClick(next)
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+            e.preventDefault()
+            const next = Math.max(0, Math.round(((currentValue || 0) - step) * 2) / 2)
+            handleClick(next)
+        } else if (e.key === 'Home') {
+            e.preventDefault()
+            handleClick(0)
+        } else if (e.key === 'End') {
+            e.preventDefault()
+            handleClick(max)
+        }
+    }
+
     return (
         <div
             {...props}
             role="radiogroup"
             aria-label="Rating"
+            tabIndex={disabled || readOnly ? -1 : 0}
+            onKeyDown={handleKeyDown}
             onMouseLeave={handleMouseLeave}
-            className={`inline-flex items-center gap-1.5 ${disabled ? 'opacity-50 cursor-not-allowed' : readOnly ? 'cursor-default' : 'cursor-pointer'} ${className}`}
+            className={`inline-flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-cc-primary/40 rounded-lg ${disabled ? 'opacity-50 cursor-not-allowed' : readOnly ? 'cursor-default' : 'cursor-pointer'} ${className}`}
         >
             {name && <input type="hidden" name={name} value={currentValue} disabled={disabled} />}
             {Array.from({ length: max }, (_, index) => {

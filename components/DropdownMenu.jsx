@@ -90,30 +90,48 @@ export const DropdownMenu = ({
         }
     }
 
+    const renderTriggerContent = () => {
+        const triggerProps = {
+            open,
+            onClick: () => {
+                if (!open) updatePosition()
+                setOpen((v) => !v)
+            },
+            onKeyDown: handleKeyDown
+        }
+
+        if (renderTrigger) {
+            return renderTrigger(triggerProps)
+        }
+
+        if (React.isValidElement(trigger)) {
+            return React.cloneElement(trigger, {
+                onClick: (e) => {
+                    trigger.props.onClick?.(e)
+                    triggerProps.onClick()
+                },
+                onKeyDown: (e) => {
+                    trigger.props.onKeyDown?.(e)
+                    triggerProps.onKeyDown(e)
+                }
+            })
+        }
+
+        return (
+            <button
+                type="button"
+                onClick={triggerProps.onClick}
+                onKeyDown={triggerProps.onKeyDown}
+                className="inline-flex items-center justify-center rounded-xl border border-cc-overlay/10 bg-cc-surface px-3 py-2 text-sm text-cc-text hover:bg-cc-overlay/5"
+            >
+                Menu
+            </button>
+        )
+    }
+
     return (
         <div ref={triggerRef} className={`relative inline-block ${className}`}>
-            {renderTrigger ? (
-                renderTrigger({
-                    open,
-                    onClick: () => {
-                        if (!open) updatePosition()
-                        setOpen((v) => !v)
-                    },
-                    onKeyDown: handleKeyDown
-                })
-            ) : (
-                <button
-                    type="button"
-                    onClick={() => {
-                        if (!open) updatePosition()
-                        setOpen((v) => !v)
-                    }}
-                    onKeyDown={handleKeyDown}
-                    className="inline-flex items-center justify-center rounded-xl border border-cc-overlay/10 bg-cc-surface px-3 py-2 text-sm text-cc-text hover:bg-cc-overlay/5"
-                >
-                    Menu
-                </button>
-            )}
+            {renderTriggerContent()}
 
             <ThemedPortal>
                 <AnimatePresence>
