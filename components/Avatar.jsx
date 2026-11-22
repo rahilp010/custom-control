@@ -5,7 +5,16 @@ const avatarSizes = {
     sm: 'h-7 w-7 text-xs',
     md: 'h-9 w-9 text-sm',
     lg: 'h-11 w-11 text-base',
-    xl: 'h-14 w-14 text-lg'
+    xl: 'h-14 w-14 text-lg',
+    small: 'h-7 w-7 text-xs',
+    medium: 'h-9 w-9 text-sm',
+    large: 'h-11 w-11 text-base'
+}
+
+const getAvatarSizeClass = (sz) => {
+    if (!sz) return avatarSizes.md
+    const key = typeof sz === 'string' ? sz.toLowerCase() : sz
+    return avatarSizes[key] || avatarSizes.md
 }
 
 const statusColors = {
@@ -37,7 +46,7 @@ export const Avatar = ({
     }
 
     const showImg = src && !imageError
-    const sizeClass = avatarSizes[size] || avatarSizes.md
+    const sizeClass = getAvatarSizeClass(size)
     const shapeClass = shape === 'circle' ? 'rounded-full' : 'rounded-xl'
 
     return (
@@ -76,7 +85,7 @@ export const AvatarGroup = ({
     const visibleChildren = childrenArray.slice(0, max)
     const extraCount = childrenArray.length - max
 
-    const sizeClass = avatarSizes[size] || avatarSizes.md
+    const sizeClass = getAvatarSizeClass(size)
 
     return (
         <div className={`flex items-center -space-x-2.5 ${className}`}>

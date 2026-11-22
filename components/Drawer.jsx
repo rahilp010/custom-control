@@ -37,12 +37,16 @@ export const Drawer = ({
         }
     }, [open, closeOnEsc, onClose, bodyLock])
 
+    const normSize = typeof size === 'string' ? size.toLowerCase() : size
     const widthClasses = {
         xs: 'max-w-xs',
         sm: 'max-w-sm',
         md: 'max-w-md',
         lg: 'max-w-xl',
-        full: 'max-w-full'
+        full: 'max-w-full',
+        small: 'max-w-sm',
+        medium: 'max-w-md',
+        large: 'max-w-xl'
     }
 
     const heightClasses = {
@@ -50,7 +54,10 @@ export const Drawer = ({
         sm: 'max-h-72',
         md: 'max-h-96',
         lg: 'max-h-[80vh]',
-        full: 'max-h-full'
+        full: 'max-h-full',
+        small: 'max-h-72',
+        medium: 'max-h-96',
+        large: 'max-h-[80vh]'
     }
 
     const isHorizontal = placement === 'right' || placement === 'left'
@@ -83,8 +90,8 @@ export const Drawer = ({
     }
 
     const sizeClass = isHorizontal
-        ? `w-full ${widthClasses[size] || widthClasses.md}`
-        : `h-full ${heightClasses[size] || heightClasses.md}`
+        ? `w-full ${widthClasses[normSize] || widthClasses.md}`
+        : `h-full ${heightClasses[normSize] || heightClasses.md}`
 
     return (
         <ThemedPortal>

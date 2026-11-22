@@ -72,7 +72,16 @@ const tagVariants = {
 const tagSizes = {
     sm: 'text-xs h-6 px-2 gap-1 rounded-md',
     md: 'text-xs h-7 px-2.5 gap-1.5 rounded-lg',
-    lg: 'text-sm h-8 px-3 gap-2 rounded-xl'
+    lg: 'text-sm h-8 px-3 gap-2 rounded-xl',
+    small: 'text-xs h-6 px-2 gap-1 rounded-md',
+    medium: 'text-xs h-7 px-2.5 gap-1.5 rounded-lg',
+    large: 'text-sm h-8 px-3 gap-2 rounded-xl'
+}
+
+const getTagSizeClass = (sz) => {
+    if (!sz) return tagSizes.md
+    const key = typeof sz === 'string' ? sz.toLowerCase() : sz
+    return tagSizes[key] || tagSizes.md
 }
 
 export const Tag = ({
@@ -90,7 +99,7 @@ export const Tag = ({
     return (
         <span
             {...props}
-            className={`inline-flex items-center font-medium select-none shrink-0 ${tagVariants[activeVariant] || tagVariants.default} ${tagSizes[size] || tagSizes.md} ${className}`}
+            className={`inline-flex items-center font-medium select-none shrink-0 ${tagVariants[activeVariant] || tagVariants.default} ${getTagSizeClass(size)} ${className}`}
         >
             {icon && <span className="inline-flex shrink-0 items-center">{icon}</span>}
             <span>{children}</span>

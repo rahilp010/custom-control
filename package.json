@@ -1,6 +1,6 @@
 {
   "name": "@rahilp010/custom-control",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "React Custom Controls - Reusable, accessible, and themeable React form controls and UI component library. Includes custom select picker, date picker, inputs, toggle, modal, combobox, tabs, drawer, pagination, accordion, and more with dark/light mode.",
   "publishConfig": {
     "access": "public"

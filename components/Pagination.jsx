@@ -86,10 +86,23 @@ export const Pagination = ({
         lg: {
             btn: 'h-11 min-w-[44px] text-base px-4 rounded-xl',
             select: 'h-11 text-base px-3 rounded-xl'
+        },
+        small: {
+            btn: 'h-7 min-w-[28px] text-xs px-2 rounded-md',
+            select: 'h-7 text-xs px-2 rounded-md'
+        },
+        medium: {
+            btn: 'h-9 min-w-[36px] text-sm px-3 rounded-xl',
+            select: 'h-9 text-sm px-2.5 rounded-xl'
+        },
+        large: {
+            btn: 'h-11 min-w-[44px] text-base px-4 rounded-xl',
+            select: 'h-11 text-base px-3 rounded-xl'
         }
     }
 
-    const currentSizes = sizeClasses[size] || sizeClasses.md
+    const normSize = typeof size === 'string' ? size.toLowerCase() : size
+    const currentSizes = sizeClasses[normSize] || sizeClasses.md
 
     return (
         <div

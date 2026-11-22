@@ -13,6 +13,9 @@ module.exports = {
   },
   theme: {
     extend: {
+      spacing: {
+        '13': '3.25rem'
+      },
       colors: {
         cc: {
           primary: 'rgb(var(--cc-primary) / <alpha-value>)',

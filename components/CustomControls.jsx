@@ -4,1521 +4,1620 @@
 /* eslint-disable no-unused-vars */
 
 import React, {
-    createContext,
-    forwardRef,
-    useCallback,
-    useContext,
-    useEffect,
-    useId,
-    useImperativeHandle,
-    useLayoutEffect,
-    useMemo,
-    useRef,
-    useState
-} from 'react'
-import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+   createContext,
+   forwardRef,
+   useCallback,
+   useContext,
+   useEffect,
+   useId,
+   useImperativeHandle,
+   useLayoutEffect,
+   useMemo,
+   useRef,
+   useState,
+} from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-    AccessTimeOutlinedIcon,
-    AddRounded,
-    CalendarTodayRounded,
-    ChevronLeftOutlinedIcon,
-    ChevronRightOutlinedIcon,
-    ClearOutlinedIcon,
-    CloseRounded,
-    EyeOffRoundedIcon,
-    EyeRoundedIcon,
-    KeyboardArrowDownRounded,
-    KeyboardArrowUpOutlinedIcon,
-    SearchRoundedIcon
-} from '../src/icons.jsx'
-import { ThemedPortal } from '../src/theme.jsx'
-
-
+   AccessTimeOutlinedIcon,
+   AddRounded,
+   AlertCircleRoundedIcon,
+   AlertTriangleRoundedIcon,
+   CalendarTodayRounded,
+   CheckCircleRoundedIcon,
+   ChevronLeftOutlinedIcon,
+   ChevronRightOutlinedIcon,
+   ClearOutlinedIcon,
+   CloseRounded,
+   EyeOffRoundedIcon,
+   EyeRoundedIcon,
+   InfoCircleRoundedIcon,
+   KeyboardArrowDownRounded,
+   KeyboardArrowUpOutlinedIcon,
+   SearchRoundedIcon,
+   SpinnerRoundedIcon,
+} from '../src/icons.jsx';
+import { ThemedPortal } from '../src/theme.jsx';
 
 /* ===================== CORE CONTROLS ===================== */
 
 const fieldClass =
-
-    'h-11 w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 text-sm font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50'
-
-
+   'h-11 w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 text-sm font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50';
 
 const buttonVariants = {
+   primary:
+      'border border-cc-primary bg-cc-primary text-cc-on-primary shadow-sm shadow-cc-primary/20 hover:bg-cc-primary-hover',
 
-    primary: 'border border-cc-primary bg-cc-primary text-cc-on-primary shadow-sm shadow-cc-primary/20 hover:bg-cc-primary-hover',
+   secondary:
+      'border border-cc-overlay/10 bg-cc-surface-2 text-cc-text hover:bg-cc-overlay/10',
 
-    secondary: 'border border-cc-overlay/10 bg-cc-surface-2 text-cc-text hover:bg-cc-overlay/10',
+   outline:
+      'border border-cc-overlay/15 bg-transparent text-cc-text hover:border-cc-primary/40 hover:bg-cc-primary/5',
 
-    outline: 'border border-cc-overlay/15 bg-transparent text-cc-text hover:border-cc-primary/40 hover:bg-cc-primary/5',
+   ghost: 'border border-transparent bg-transparent text-cc-text hover:bg-cc-overlay/5',
 
-    ghost: 'border border-transparent bg-transparent text-cc-text hover:bg-cc-overlay/5',
-
-    danger: 'border border-red-500 bg-red-600 text-white shadow-sm shadow-red-600/20 hover:bg-red-700'
-
-}
-
-
+   danger:
+      'border border-red-500 bg-red-600 text-white shadow-sm shadow-red-600/20 hover:bg-red-700',
+};
 
 const buttonSizes = {
+   sm: 'h-9 gap-2 rounded-lg px-3 text-xs',
 
-    sm: 'h-9 gap-2 rounded-lg px-3 text-xs',
+   md: 'h-11 gap-2 rounded-xl px-4 text-sm',
 
-    md: 'h-11 gap-2 rounded-xl px-4 text-sm',
+   lg: 'h-12 gap-2.5 rounded-xl px-5 text-base',
 
-    lg: 'h-12 gap-2.5 rounded-xl px-5 text-base'
+   small: 'h-9 gap-2 rounded-lg px-3 text-xs',
 
-}
+   medium: 'h-11 gap-2 rounded-xl px-4 text-sm',
 
+   large: 'h-12 gap-2.5 rounded-xl px-5 text-base',
+};
 
+const getButtonSizeClass = (sz) => {
+   if (!sz) return buttonSizes.md;
+   const key = typeof sz === 'string' ? sz.toLowerCase() : sz;
+   return buttonSizes[key] || buttonSizes.md;
+};
 
 export const Button = forwardRef(
+   (
+      {
+         variant = 'primary',
 
-    (
+         size = 'md',
 
-        {
+         loading = false,
 
-            variant = 'primary',
+         disabled = false,
 
-            size = 'md',
+         startIcon,
 
-            loading = false,
+         endIcon,
 
-            disabled = false,
+         className = '',
 
-            startIcon,
+         type = 'button',
 
-            endIcon,
+         children,
 
-            className = '',
+         ...props
+      },
 
-            type = 'button',
+      ref,
+   ) => (
+      <button
+         {...props}
+         ref={ref}
+         type={type}
+         disabled={disabled || loading}
+         aria-busy={loading || undefined}
+         className={`inline-flex shrink-0 items-center justify-center whitespace-nowrap font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/20 disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant] || buttonVariants.primary} ${getButtonSizeClass(size)} ${className}`}>
+         {loading ? (
+            <span
+               aria-hidden="true"
+               className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent"
+            />
+         ) : (
+            startIcon
+         )}
 
-            children,
+         {children}
 
-            ...props
+         {!loading && endIcon}
+      </button>
+   ),
+);
 
-        },
+export const Label = ({
+   htmlFor,
+   required = false,
+   className = '',
+   children,
+   ...props
+}) => (
+   <label
+      {...props}
+      htmlFor={htmlFor}
+      className={`inline-flex items-center gap-1 text-sm font-medium text-cc-text ${className}`}>
+      {children}
 
-        ref
-
-    ) => (
-
-        <button
-
-            {...props}
-
-            ref={ref}
-
-            type={type}
-
-            disabled={disabled || loading}
-
-            aria-busy={loading || undefined}
-
-            className={`inline-flex shrink-0 items-center justify-center whitespace-nowrap font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/20 disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant] || buttonVariants.primary} ${buttonSizes[size] || buttonSizes.md} ${className}`}
-
-        >
-
-            {loading ? (
-
-                <span
-
-                    aria-hidden="true"
-
-                    className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent"
-
-                />
-
-            ) : (
-
-                startIcon
-
-            )}
-
-            {children}
-
-            {!loading && endIcon}
-
-        </button>
-
-    )
-
-)
-
-
-
-export const Label = ({ htmlFor, required = false, className = '', children, ...props }) => (
-
-    <label
-
-        {...props}
-
-        htmlFor={htmlFor}
-
-        className={`inline-flex items-center gap-1 text-sm font-medium text-cc-text ${className}`}
-
-    >
-
-        {children}
-
-        {required && (
-
-            <span aria-hidden="true" className="text-red-500">
-
-                *
-
-            </span>
-
-        )}
-
-    </label>
-
-)
-
-
+      {required && (
+         <span aria-hidden="true" className="text-red-500">
+            *
+         </span>
+      )}
+   </label>
+);
 
 export const FormField = ({
+   id: idProp,
 
-    id: idProp,
+   label,
 
-    label,
+   description,
 
-    description,
+   error,
 
-    error,
+   required = false,
 
-    required = false,
+   className = '',
 
-    className = '',
-
-    children
-
+   children,
 }) => {
+   const generatedId = useId();
 
-    const generatedId = useId()
+   const id = idProp || `cc-field-${generatedId}`;
 
-    const id = idProp || `cc-field-${generatedId}`
+   const isControlElement = React.isValidElement(children);
 
-    const isControlElement = React.isValidElement(children)
+   const controlId = isControlElement ? children.props.id || id : id;
 
-    const controlId = isControlElement ? children.props.id || id : id
+   const descriptionId = description ? `${controlId}-description` : undefined;
 
-    const descriptionId = description ? `${controlId}-description` : undefined
+   const errorId = error ? `${controlId}-error` : undefined;
 
-    const errorId = error ? `${controlId}-error` : undefined
+   const describedBy =
+      [descriptionId, errorId].filter(Boolean).join(' ') || undefined;
 
-    const describedBy = [descriptionId, errorId].filter(Boolean).join(' ') || undefined
+   const control = isControlElement
+      ? React.cloneElement(children, {
+           id: controlId,
 
-    const control = isControlElement
+           required: children.props.required ?? required,
 
-        ? React.cloneElement(children, {
+           'aria-invalid': error ? true : children.props['aria-invalid'],
 
-            id: controlId,
+           'aria-describedby':
+              [children.props['aria-describedby'], describedBy]
 
-            required: children.props.required ?? required,
+                 .filter(Boolean)
 
-            'aria-invalid': error ? true : children.props['aria-invalid'],
-
-            'aria-describedby': [children.props['aria-describedby'], describedBy]
-
-                .filter(Boolean)
-
-                .join(' ') || undefined
-
+                 .join(' ') || undefined,
         })
+      : children;
 
-        : children
+   return (
+      <div className={`grid gap-1.5 ${className}`}>
+         {label && (
+            <Label htmlFor={controlId} required={required}>
+               {label}
+            </Label>
+         )}
 
+         {control}
 
+         {description && (
+            <p
+               id={descriptionId}
+               className="text-xs leading-relaxed text-cc-muted">
+               {description}
+            </p>
+         )}
 
-    return (
-
-        <div className={`grid gap-1.5 ${className}`}>
-
-            {label && (
-
-                <Label htmlFor={controlId} required={required}>
-
-                    {label}
-
-                </Label>
-
-            )}
-
-            {control}
-
-            {description && (
-
-                <p id={descriptionId} className="text-xs leading-relaxed text-cc-muted">
-
-                    {description}
-
-                </p>
-
-            )}
-
-            {error && (
-
-                <p id={errorId} role="alert" className="text-xs leading-relaxed text-red-600">
-
-                    {error}
-
-                </p>
-
-            )}
-
-        </div>
-
-    )
-
-}
-
-
+         {error && (
+            <p
+               id={errorId}
+               role="alert"
+               className="text-xs leading-relaxed text-red-600">
+               {error}
+            </p>
+         )}
+      </div>
+   );
+};
 
 const normalizeOptions = (options) =>
-    (Array.isArray(options) ? options : []).map((option) =>
-        option !== null && typeof option === 'object'
+   (Array.isArray(options) ? options : []).map((option) =>
+      option !== null && typeof option === 'object'
+         ? {
+              label: String(option.label ?? option.value ?? ''),
 
-            ? {
+              value: String(option.value ?? option.label ?? ''),
 
-                label: String(option.label ?? option.value ?? ''),
-
-                value: String(option.value ?? option.label ?? ''),
-
-                disabled: Boolean(option.disabled)
-
-            }
-
-            : { label: String(option), value: String(option), disabled: false }
-
-    )
-
-
+              disabled: Boolean(option.disabled),
+           }
+         : { label: String(option), value: String(option), disabled: false },
+   );
 
 const SuggestionInput = forwardRef(
+   (
+      {
+         options = [],
 
-    (
+         value,
 
-        {
+         defaultValue = '',
 
-            options = [],
+         onChange,
 
-            value,
+         onSelect,
 
-            defaultValue = '',
+         placeholder = 'Start typing...',
 
-            onChange,
+         allowCustomValue = true,
 
-            onSelect,
+         disabled = false,
 
-            placeholder = 'Start typing...',
+         className = '',
 
-            allowCustomValue = true,
+         listClassName = '',
 
-            disabled = false,
+         emptyMessage = 'No suggestions found',
 
-            className = '',
+         onFocus,
 
-            listClassName = '',
+         onBlur,
 
-            emptyMessage = 'No suggestions found',
+         ...props
+      },
 
-            onFocus,
+      forwardedRef,
+   ) => {
+      const generatedId = useId();
 
-            onBlur,
+      const listId = `cc-suggestions-${generatedId}`;
 
-            ...props
+      const inputRef = useRef(null);
 
-        },
+      const isControlled = value !== undefined;
 
-        forwardedRef
+      const [innerValue, setInnerValue] = useState(defaultValue);
 
-    ) => {
+      const currentValue = String(isControlled ? (value ?? '') : innerValue);
 
-        const generatedId = useId()
+      const [open, setOpen] = useState(false);
 
-        const listId = `cc-suggestions-${generatedId}`
+      const [activeIndex, setActiveIndex] = useState(-1);
 
-        const inputRef = useRef(null)
+      const [query, setQuery] = useState(currentValue);
 
-        const isControlled = value !== undefined
+      const inputValue = open ? query : currentValue;
 
-        const [innerValue, setInnerValue] = useState(defaultValue)
+      const normalizedOptions = useMemo(
+         () => normalizeOptions(options),
+         [options],
+      );
 
-        const currentValue = String(isControlled ? value ?? '' : innerValue)
+      const filteredOptions = useMemo(() => {
+         const search = query.trim().toLocaleLowerCase();
 
-        const [open, setOpen] = useState(false)
+         return normalizedOptions.filter((option) =>
+            option.label.toLocaleLowerCase().includes(search),
+         );
+      }, [normalizedOptions, query]);
 
-        const [activeIndex, setActiveIndex] = useState(-1)
+      React.useImperativeHandle(forwardedRef, () => inputRef.current);
 
-        const [query, setQuery] = useState(currentValue)
+      useEffect(() => {
+         if (!open) setQuery(currentValue);
+      }, [currentValue, open]);
 
-        const inputValue = open ? query : currentValue
+      const commit = (nextValue, event, selectedOption) => {
+         if (!isControlled) setInnerValue(nextValue);
 
-        const normalizedOptions = useMemo(() => normalizeOptions(options), [options])
+         setQuery(nextValue);
 
-        const filteredOptions = useMemo(() => {
+         onChange?.(nextValue, event);
 
-            const search = query.trim().toLocaleLowerCase()
+         if (selectedOption) onSelect?.(selectedOption.value, selectedOption);
 
-            return normalizedOptions.filter((option) => option.label.toLocaleLowerCase().includes(search))
+         setOpen(false);
 
-        }, [normalizedOptions, query])
+         setActiveIndex(-1);
+      };
 
+      const handleKeyDown = (event) => {
+         props.onKeyDown?.(event);
 
+         if (event.defaultPrevented) return;
 
-        React.useImperativeHandle(forwardedRef, () => inputRef.current)
+         if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
 
-        useEffect(() => {
+            setOpen(true);
 
-            if (!open) setQuery(currentValue)
+            setActiveIndex((index) => {
+               if (!filteredOptions.length) return -1;
 
-        }, [currentValue, open])
+               if (event.key === 'ArrowDown')
+                  return (index + 1) % filteredOptions.length;
 
+               return index <= 0 ? filteredOptions.length - 1 : index - 1;
+            });
+         } else if (event.key === 'Enter' && open && activeIndex >= 0) {
+            event.preventDefault();
 
+            const option = filteredOptions[activeIndex];
 
-        const commit = (nextValue, event, selectedOption) => {
+            if (option && !option.disabled) commit(option.value, event, option);
+         } else if (event.key === 'Enter' && !allowCustomValue) {
+            const exactMatch = normalizedOptions.find(
+               (option) => option.value === query || option.label === query,
+            );
 
-            if (!isControlled) setInnerValue(nextValue)
+            if (exactMatch) {
+               event.preventDefault();
 
-            setQuery(nextValue)
-
-            onChange?.(nextValue, event)
-
-            if (selectedOption) onSelect?.(selectedOption.value, selectedOption)
-
-            setOpen(false)
-
-            setActiveIndex(-1)
-
-        }
-
-
-
-        const handleKeyDown = (event) => {
-
-            props.onKeyDown?.(event)
-
-            if (event.defaultPrevented) return
-
-
-
-            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-
-                event.preventDefault()
-
-                setOpen(true)
-
-                setActiveIndex((index) => {
-
-                    if (!filteredOptions.length) return -1
-
-                    if (event.key === 'ArrowDown') return (index + 1) % filteredOptions.length
-
-                    return index <= 0 ? filteredOptions.length - 1 : index - 1
-
-                })
-
-            } else if (event.key === 'Enter' && open && activeIndex >= 0) {
-
-                event.preventDefault()
-
-                const option = filteredOptions[activeIndex]
-
-                if (option && !option.disabled) commit(option.value, event, option)
-
-            } else if (event.key === 'Enter' && !allowCustomValue) {
-
-                const exactMatch = normalizedOptions.find(
-
-                    (option) => option.value === query || option.label === query
-
-                )
-
-                if (exactMatch) {
-
-                    event.preventDefault()
-
-                    commit(exactMatch.value, event, exactMatch)
-
-                }
-
-            } else if (event.key === 'Escape') {
-
-                setOpen(false)
-
-                setActiveIndex(-1)
-
+               commit(exactMatch.value, event, exactMatch);
             }
-
-        }
-
-
-
-        return (
-
-            <div className={`relative w-full ${className}`}>
-
-                <input
-
-                    {...props}
-
-                    ref={inputRef}
-
-                    role="combobox"
-
-                    aria-autocomplete="list"
-
-                    aria-expanded={open}
-
-                    aria-controls={listId}
-
-                    aria-activedescendant={open && activeIndex >= 0 ? `${listId}-${activeIndex}` : undefined}
-
-                    autoComplete="off"
-
-                    disabled={disabled}
-
-                    value={inputValue}
-
-                    placeholder={placeholder}
-
-                    className={fieldClass}
-
-                    onFocus={(event) => {
-
-                        setQuery(currentValue)
-
-                        setOpen(true)
-
-                        onFocus?.(event)
-
-                    }}
-
-                    onBlur={(event) => {
-
-                        setOpen(false)
-
-                        setActiveIndex(-1)
-
-                        setQuery(currentValue)
-
-                        onBlur?.(event)
-
-                    }}
-
-                    onChange={(event) => {
-
-                        setQuery(event.target.value)
-
-                        if (allowCustomValue) {
-
-                            if (!isControlled) setInnerValue(event.target.value)
-
-                            onChange?.(event.target.value, event)
-
-                        }
-
-                        setOpen(true)
-
-                        setActiveIndex(-1)
-
-                    }}
-
-                    onKeyDown={handleKeyDown}
-
-                />
-
-                {open && !disabled && (
-
-                    <ul
-
-                        id={listId}
-
-                        role="listbox"
-
-                        className={`absolute z-[var(--cc-z)] mt-1.5 max-h-60 w-full overflow-y-auto rounded-xl border border-cc-overlay/10 bg-cc-surface p-1.5 text-cc-text shadow-xl shadow-cc-scrim/15 customScrollbar ${listClassName}`}
-
-                    >
-
-                        {filteredOptions.length ? (
-
-                            filteredOptions.map((option, index) => (
-
-                                <li
-
-                                    id={`${listId}-${index}`}
-
-                                    key={`${option.value}-${index}`}
-
-                                    role="option"
-
-                                    aria-selected={index === activeIndex}
-
-                                    aria-disabled={option.disabled || undefined}
-
-                                    onMouseEnter={() => setActiveIndex(index)}
-
-                                    onMouseDown={(event) => event.preventDefault()}
-
-                                    onClick={(event) => {
-
-                                        if (!option.disabled) commit(option.value, event, option)
-
-                                    }}
-
-                                    className={`cursor-pointer rounded-lg px-3 py-2.5 text-sm transition-colors ${option.disabled
-
-                                        ? 'cursor-not-allowed opacity-50'
-
-                                        : index === activeIndex
-
-                                            ? 'bg-cc-primary/10 text-cc-primary'
-
-                                            : 'text-cc-text hover:bg-cc-overlay/5'
-
-                                        }`}
-
-                                >
-
-                                    {option.label}
-
-                                </li>
-
-                            ))
-
-                        ) : (
-
-                            <li className="px-3 py-2.5 text-sm text-cc-muted">{emptyMessage}</li>
-
-                        )}
-
-                    </ul>
-
-                )}
-
-            </div>
-
-        )
-
-    }
-
-)
-
-
+         } else if (event.key === 'Escape') {
+            setOpen(false);
+
+            setActiveIndex(-1);
+         }
+      };
+
+      return (
+         <div className={`relative w-full ${className}`}>
+            <input
+               {...props}
+               ref={inputRef}
+               role="combobox"
+               aria-autocomplete="list"
+               aria-expanded={open}
+               aria-controls={listId}
+               aria-activedescendant={
+                  open && activeIndex >= 0
+                     ? `${listId}-${activeIndex}`
+                     : undefined
+               }
+               autoComplete="off"
+               disabled={disabled}
+               value={inputValue}
+               placeholder={placeholder}
+               className={fieldClass}
+               onFocus={(event) => {
+                  setQuery(currentValue);
+
+                  setOpen(true);
+
+                  onFocus?.(event);
+               }}
+               onBlur={(event) => {
+                  setOpen(false);
+
+                  setActiveIndex(-1);
+
+                  setQuery(currentValue);
+
+                  onBlur?.(event);
+               }}
+               onChange={(event) => {
+                  setQuery(event.target.value);
+
+                  if (allowCustomValue) {
+                     if (!isControlled) setInnerValue(event.target.value);
+
+                     onChange?.(event.target.value, event);
+                  }
+
+                  setOpen(true);
+
+                  setActiveIndex(-1);
+               }}
+               onKeyDown={handleKeyDown}
+            />
+
+            {open && !disabled && (
+               <ul
+                  id={listId}
+                  role="listbox"
+                  className={`absolute z-[var(--cc-z)] mt-1.5 max-h-60 w-full overflow-y-auto rounded-xl border border-cc-overlay/10 bg-cc-surface p-1.5 text-cc-text shadow-xl shadow-cc-scrim/15 customScrollbar ${listClassName}`}>
+                  {filteredOptions.length ? (
+                     filteredOptions.map((option, index) => (
+                        <li
+                           id={`${listId}-${index}`}
+                           key={`${option.value}-${index}`}
+                           role="option"
+                           aria-selected={index === activeIndex}
+                           aria-disabled={option.disabled || undefined}
+                           onMouseEnter={() => setActiveIndex(index)}
+                           onMouseDown={(event) => event.preventDefault()}
+                           onClick={(event) => {
+                              if (!option.disabled)
+                                 commit(option.value, event, option);
+                           }}
+                           className={`cursor-pointer rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                              option.disabled
+                                 ? 'cursor-not-allowed opacity-50'
+                                 : index === activeIndex
+                                   ? 'bg-cc-primary/10 text-cc-primary'
+                                   : 'text-cc-text hover:bg-cc-overlay/5'
+                           }`}>
+                           {option.label}
+                        </li>
+                     ))
+                  ) : (
+                     <li className="px-3 py-2.5 text-sm text-cc-muted">
+                        {emptyMessage}
+                     </li>
+                  )}
+               </ul>
+            )}
+         </div>
+      );
+   },
+);
 
 export const Combobox = forwardRef((props, ref) => (
-
-    <SuggestionInput {...props} ref={ref} allowCustomValue={props.allowCustomValue ?? false} />
-
-))
-
-
+   <SuggestionInput
+      {...props}
+      ref={ref}
+      allowCustomValue={props.allowCustomValue ?? false}
+   />
+));
 
 export const Autocomplete = forwardRef((props, ref) => (
-
-    <SuggestionInput {...props} ref={ref} allowCustomValue={props.allowCustomValue ?? true} />
-
-))
-
-
+   <SuggestionInput
+      {...props}
+      ref={ref}
+      allowCustomValue={props.allowCustomValue ?? true}
+   />
+));
 
 export const OtpInput = forwardRef(
+   (
+      {
+         length = 6,
 
-    (
+         value,
 
-        {
+         defaultValue = '',
 
-            length = 6,
+         onChange,
 
-            value,
+         disabled = false,
 
-            defaultValue = '',
+         autoFocus = false,
 
-            onChange,
+         className = '',
 
-            disabled = false,
+         inputClassName = '',
 
-            autoFocus = false,
+         type = 'numeric',
 
-            className = '',
+         ...props
+      },
 
-            inputClassName = '',
+      forwardedRef,
+   ) => {
+      const count = Math.max(1, Math.floor(Number(length) || 6));
 
-            type = 'numeric',
+      const isControlled = value !== undefined;
 
-            ...props
+      const [innerValue, setInnerValue] = useState(String(defaultValue));
 
-        },
+      const refs = useRef([]);
 
-        forwardedRef
+      const inputId = useId();
 
-    ) => {
+      const currentValue = String(isControlled ? (value ?? '') : innerValue)
+         .replace(type === 'numeric' ? /[^0-9]/g : /[^a-zA-Z0-9]/g, '')
 
-        const count = Math.max(1, Math.floor(Number(length) || 6))
+         .slice(0, count);
 
-        const isControlled = value !== undefined
+      const digits = Array.from(
+         { length: count },
+         (_, index) => currentValue[index] || '',
+      );
 
-        const [innerValue, setInnerValue] = useState(String(defaultValue))
+      React.useImperativeHandle(forwardedRef, () => ({
+         focus: (index = 0) => refs.current[index]?.focus(),
 
-        const refs = useRef([])
+         clear: () => {
+            if (!isControlled) setInnerValue('');
 
-        const inputId = useId()
+            onChange?.('');
 
-        const currentValue = String(isControlled ? value ?? '' : innerValue)
+            refs.current[0]?.focus();
+         },
+      }));
+
+      const updateValue = (nextValue, focusIndex) => {
+         const sanitized = nextValue
 
             .replace(type === 'numeric' ? /[^0-9]/g : /[^a-zA-Z0-9]/g, '')
 
-            .slice(0, count)
-
-        const digits = Array.from({ length: count }, (_, index) => currentValue[index] || '')
-
-
-
-        React.useImperativeHandle(forwardedRef, () => ({
-
-            focus: (index = 0) => refs.current[index]?.focus(),
-
-            clear: () => {
-
-                if (!isControlled) setInnerValue('')
-
-                onChange?.('')
-
-                refs.current[0]?.focus()
-
-            }
-
-        }))
-
-
-
-        const updateValue = (nextValue, focusIndex) => {
-
-            const sanitized = nextValue
-
-                .replace(type === 'numeric' ? /[^0-9]/g : /[^a-zA-Z0-9]/g, '')
-
-                .slice(0, count)
-
-            if (!isControlled) setInnerValue(sanitized)
-
-            onChange?.(sanitized)
-
-            if (focusIndex !== undefined) refs.current[focusIndex]?.focus()
-
-        }
-
-
-
-        return (
-
-            <div
-
-                role="group"
-
-                aria-label={props['aria-label'] || 'One-time password'}
-
-                className={`flex items-center gap-2 sm:gap-3 ${className}`}
-
-            >
-
-                {digits.map((digit, index) => (
-
-                    <input
-
-                        {...props}
-
-                        key={`${inputId}-${index}`}
-
-                        ref={(element) => {
-
-                            refs.current[index] = element
-
-                        }}
-
-                        type="text"
-
-                        inputMode={type === 'numeric' ? 'numeric' : 'text'}
-
-                        autoComplete={index === 0 ? 'one-time-code' : 'off'}
-
-                        aria-label={`Character ${index + 1} of ${count}`}
-
-                        maxLength={count}
-
-                        value={digit}
-
-                        disabled={disabled}
-
-                        autoFocus={autoFocus && index === 0}
-
-                        className={`h-12 w-10 rounded-xl border border-cc-overlay/10 bg-cc-surface text-center text-lg font-semibold text-cc-text outline-none transition-all focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 sm:h-14 sm:w-12 ${inputClassName}`}
-
-                        onChange={(event) => {
-
-                            const entered = event.target.value.replace(
-
-                                type === 'numeric' ? /[^0-9]/g : /[^a-zA-Z0-9]/g,
-
-                                ''
-
-                            )
-
-                            if (!entered) {
-
-                                const next = currentValue.split('')
-
-                                next[index] = ''
-
-                                updateValue(next.join(''))
-
-                                return
-
-                            }
-
-                            const next = currentValue.split('')
-
-                            entered.slice(0, count - index).split('').forEach((character, offset) => {
-
-                                next[index + offset] = character
-
-                            })
-
-                            const nextValue = next.join('').slice(0, count)
-
-                            updateValue(nextValue, Math.min(index + entered.length, count - 1))
-
-                        }}
-
-                        onKeyDown={(event) => {
-
-                            props.onKeyDown?.(event)
-
-                            if (event.defaultPrevented) return
-
-                            if (event.key === 'Backspace' && !digits[index] && index > 0) {
-
-                                refs.current[index - 1]?.focus()
-
-                            } else if (event.key === 'ArrowLeft' && index > 0) {
-
-                                event.preventDefault()
-
-                                refs.current[index - 1]?.focus()
-
-                            } else if (event.key === 'ArrowRight' && index < count - 1) {
-
-                                event.preventDefault()
-
-                                refs.current[index + 1]?.focus()
-
-                            }
-
-                        }}
-
-                        onPaste={(event) => {
-
-                            const pasted = event.clipboardData.getData('text')
-
-                            if (!pasted) return
-
-                            event.preventDefault()
-
-                            const start = index
-
-                            const prefix = currentValue.slice(0, start)
-
-                            const suffixStart = start + pasted.length
-
-                            const nextValue = `${prefix}${pasted}${currentValue.slice(suffixStart)}`
-
-                            updateValue(nextValue, Math.min(start + pasted.length, count - 1))
-
-                        }}
-
-                    />
-
-                ))}
-
-            </div>
-
-        )
-
-    }
-
-)
-
-
+            .slice(0, count);
+
+         if (!isControlled) setInnerValue(sanitized);
+
+         onChange?.(sanitized);
+
+         if (focusIndex !== undefined) refs.current[focusIndex]?.focus();
+      };
+
+      return (
+         <div
+            role="group"
+            aria-label={props['aria-label'] || 'One-time password'}
+            className={`flex items-center gap-2 sm:gap-3 ${className}`}>
+            {digits.map((digit, index) => (
+               <input
+                  {...props}
+                  key={`${inputId}-${index}`}
+                  ref={(element) => {
+                     refs.current[index] = element;
+                  }}
+                  type="text"
+                  inputMode={type === 'numeric' ? 'numeric' : 'text'}
+                  autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                  aria-label={`Character ${index + 1} of ${count}`}
+                  maxLength={count}
+                  value={digit}
+                  disabled={disabled}
+                  autoFocus={autoFocus && index === 0}
+                  className={`h-12 w-10 rounded-xl border border-cc-overlay/10 bg-cc-surface text-center text-lg font-semibold text-cc-text outline-none transition-all focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 sm:h-14 sm:w-12 ${inputClassName}`}
+                  onChange={(event) => {
+                     const entered = event.target.value.replace(
+                        type === 'numeric' ? /[^0-9]/g : /[^a-zA-Z0-9]/g,
+
+                        '',
+                     );
+
+                     if (!entered) {
+                        const next = currentValue.split('');
+
+                        next[index] = '';
+
+                        updateValue(next.join(''));
+
+                        return;
+                     }
+
+                     const next = currentValue.split('');
+
+                     entered
+                        .slice(0, count - index)
+                        .split('')
+                        .forEach((character, offset) => {
+                           next[index + offset] = character;
+                        });
+
+                     const nextValue = next.join('').slice(0, count);
+
+                     updateValue(
+                        nextValue,
+                        Math.min(index + entered.length, count - 1),
+                     );
+                  }}
+                  onKeyDown={(event) => {
+                     props.onKeyDown?.(event);
+
+                     if (event.defaultPrevented) return;
+
+                     if (
+                        event.key === 'Backspace' &&
+                        !digits[index] &&
+                        index > 0
+                     ) {
+                        refs.current[index - 1]?.focus();
+                     } else if (event.key === 'ArrowLeft' && index > 0) {
+                        event.preventDefault();
+
+                        refs.current[index - 1]?.focus();
+                     } else if (
+                        event.key === 'ArrowRight' &&
+                        index < count - 1
+                     ) {
+                        event.preventDefault();
+
+                        refs.current[index + 1]?.focus();
+                     }
+                  }}
+                  onPaste={(event) => {
+                     const pasted = event.clipboardData.getData('text');
+
+                     if (!pasted) return;
+
+                     event.preventDefault();
+
+                     const start = index;
+
+                     const prefix = currentValue.slice(0, start);
+
+                     const suffixStart = start + pasted.length;
+
+                     const nextValue = `${prefix}${pasted}${currentValue.slice(suffixStart)}`;
+
+                     updateValue(
+                        nextValue,
+                        Math.min(start + pasted.length, count - 1),
+                     );
+                  }}
+               />
+            ))}
+         </div>
+      );
+   },
+);
 
 const alertVariants = {
+   info: 'border-blue-500/20 bg-blue-500/5 text-cc-text',
 
-    info: 'border-blue-500/20 bg-blue-500/5 text-cc-text',
+   success: 'border-emerald-500/20 bg-emerald-500/5 text-cc-text',
 
-    success: 'border-emerald-500/20 bg-emerald-500/5 text-cc-text',
+   warning: 'border-amber-500/25 bg-amber-500/10 text-cc-text',
 
-    warning: 'border-amber-500/25 bg-amber-500/10 text-cc-text',
-
-    error: 'border-red-500/20 bg-red-500/5 text-cc-text'
-
-}
-
-
+   error: 'border-red-500/20 bg-red-500/5 text-cc-text',
+};
 
 export const Alert = ({
+   variant = 'info',
 
-    variant = 'info',
+   title,
 
-    title,
+   children,
 
-    children,
+   dismissible = false,
 
-    dismissible = false,
+   onClose,
 
-    onClose,
-
-    className = ''
-
+   className = '',
 }) => (
+   <div
+      role={variant === 'error' || variant === 'warning' ? 'alert' : 'status'}
+      className={`relative flex items-start justify-between gap-4 rounded-xl border p-4 text-sm ${alertVariants[variant] || alertVariants.info} ${className}`}>
+      <div className="min-w-0">
+         {title && <p className="mb-1 font-semibold">{title}</p>}
 
-    <div
+         <div className="leading-relaxed">{children}</div>
+      </div>
 
-        role={variant === 'error' || variant === 'warning' ? 'alert' : 'status'}
+      {dismissible && (
+         <button
+            type="button"
+            aria-label="Dismiss alert"
+            onClick={onClose}
+            className="shrink-0 rounded-md px-2 py-1 text-lg leading-none opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current">
+            ×
+         </button>
+      )}
+   </div>
+);
 
-        className={`relative flex items-start justify-between gap-4 rounded-xl border p-4 text-sm ${alertVariants[variant] || alertVariants.info} ${className}`}
+const toastVariantStyles = {
+   glass: {
+      info: {
+         container:
+            'backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border border-blue-500/20 text-slate-800 dark:text-slate-100 shadow-[0_12px_36px_rgba(59,130,246,0.12)]',
+         iconBadge: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+         title: 'text-slate-900 dark:text-white',
+         desc: 'text-slate-600 dark:text-slate-300',
+         close: 'text-slate-400 hover:text-slate-700 hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/10',
+         action:
+            'bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-600/20',
+         progress: 'bg-blue-500',
+      },
+      success: {
+         container:
+            'backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border border-emerald-500/20 text-slate-800 dark:text-slate-100 shadow-[0_12px_36px_rgba(16,185,129,0.12)]',
+         iconBadge: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+         title: 'text-slate-900 dark:text-white',
+         desc: 'text-slate-600 dark:text-slate-300',
+         close: 'text-slate-400 hover:text-slate-700 hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/10',
+         action:
+            'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm shadow-emerald-600/20',
+         progress: 'bg-emerald-500',
+      },
+      warning: {
+         container:
+            'backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border border-amber-500/25 text-slate-800 dark:text-slate-100 shadow-[0_12px_36px_rgba(245,158,11,0.12)]',
+         iconBadge: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+         title: 'text-slate-900 dark:text-white',
+         desc: 'text-slate-600 dark:text-slate-300',
+         close: 'text-slate-400 hover:text-slate-700 hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/10',
+         action:
+            'bg-amber-500 text-white hover:bg-amber-600 shadow-sm shadow-amber-500/20',
+         progress: 'bg-amber-500',
+      },
+      error: {
+         container:
+            'backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border border-rose-500/25 text-slate-800 dark:text-slate-100 shadow-[0_12px_36px_rgba(244,63,94,0.15)]',
+         iconBadge: 'bg-rose-500/15 text-rose-600 dark:text-rose-400',
+         title: 'text-slate-900 dark:text-white',
+         desc: 'text-slate-600 dark:text-slate-300',
+         close: 'text-slate-400 hover:text-slate-700 hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/10',
+         action:
+            'bg-rose-600 text-white hover:bg-rose-700 shadow-sm shadow-rose-600/20',
+         progress: 'bg-rose-500',
+      },
+      loading: {
+         container:
+            'backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border border-cc-primary/25 text-slate-800 dark:text-slate-100 shadow-[0_12px_36px_rgba(99,102,241,0.12)]',
+         iconBadge: 'bg-cc-primary/15 text-cc-primary',
+         title: 'text-slate-900 dark:text-white',
+         desc: 'text-slate-600 dark:text-slate-300',
+         close: 'text-slate-400 hover:text-slate-700 hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/10',
+         action: 'bg-cc-primary text-cc-on-primary hover:opacity-90 shadow-sm',
+         progress: 'bg-cc-primary',
+      },
+   },
+   colorful: {
+      info: {
+         container:
+            'bg-blue-600 text-white border border-blue-500 shadow-xl shadow-blue-600/30',
+         iconBadge: 'bg-white/20 text-white',
+         title: 'text-white font-bold',
+         desc: 'text-blue-100',
+         close: 'text-white/80 hover:text-white hover:bg-white/20',
+         action:
+            'bg-white text-blue-700 hover:bg-white/95 shadow-sm font-semibold',
+         progress: 'bg-white/50',
+      },
+      success: {
+         container:
+            'bg-emerald-600 text-white border border-emerald-500 shadow-xl shadow-emerald-600/30',
+         iconBadge: 'bg-white/20 text-white',
+         title: 'text-white font-bold',
+         desc: 'text-emerald-100',
+         close: 'text-white/80 hover:text-white hover:bg-white/20',
+         action:
+            'bg-white text-emerald-700 hover:bg-white/95 shadow-sm font-semibold',
+         progress: 'bg-white/50',
+      },
+      warning: {
+         container:
+            'bg-amber-500 text-white border border-amber-400 shadow-xl shadow-amber-500/30',
+         iconBadge: 'bg-white/20 text-white',
+         title: 'text-white font-bold',
+         desc: 'text-amber-100',
+         close: 'text-white/80 hover:text-white hover:bg-white/20',
+         action:
+            'bg-white text-amber-700 hover:bg-white/95 shadow-sm font-semibold',
+         progress: 'bg-white/50',
+      },
+      error: {
+         container:
+            'bg-rose-600 text-white border border-rose-500 shadow-xl shadow-rose-600/30',
+         iconBadge: 'bg-white/20 text-white',
+         title: 'text-white font-bold',
+         desc: 'text-rose-100',
+         close: 'text-white/80 hover:text-white hover:bg-white/20',
+         action:
+            'bg-white text-rose-700 hover:bg-white/95 shadow-sm font-semibold',
+         progress: 'bg-white/50',
+      },
+      loading: {
+         container:
+            'bg-cc-primary text-cc-on-primary border border-cc-primary shadow-xl shadow-cc-primary/30',
+         iconBadge: 'bg-white/20 text-white',
+         title: 'text-white font-bold',
+         desc: 'text-white/80',
+         close: 'text-white/80 hover:text-white hover:bg-white/20',
+         action:
+            'bg-white text-slate-900 hover:bg-white/95 shadow-sm font-semibold',
+         progress: 'bg-white/50',
+      },
+   },
+   gradient: {
+      info: {
+         container:
+            'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white border border-white/20 shadow-xl shadow-blue-600/30',
+         iconBadge: 'bg-white/20 text-white backdrop-blur-sm',
+         title: 'text-white font-bold',
+         desc: 'text-blue-100',
+         close: 'text-white/80 hover:text-white hover:bg-white/20',
+         action:
+            'bg-white text-indigo-700 hover:bg-white/95 shadow-sm font-semibold',
+         progress: 'bg-white/50',
+      },
+      success: {
+         container:
+            'bg-gradient-to-r from-emerald-500 via-teal-600 to-emerald-600 text-white border border-white/20 shadow-xl shadow-emerald-600/30',
+         iconBadge: 'bg-white/20 text-white backdrop-blur-sm',
+         title: 'text-white font-bold',
+         desc: 'text-emerald-100',
+         close: 'text-white/80 hover:text-white hover:bg-white/20',
+         action:
+            'bg-white text-emerald-700 hover:bg-white/95 shadow-sm font-semibold',
+         progress: 'bg-white/50',
+      },
+      warning: {
+         container:
+            'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white border border-white/20 shadow-xl shadow-amber-500/30',
+         iconBadge: 'bg-white/20 text-white backdrop-blur-sm',
+         title: 'text-white font-bold',
+         desc: 'text-amber-100',
+         close: 'text-white/80 hover:text-white hover:bg-white/20',
+         action:
+            'bg-white text-orange-700 hover:bg-white/95 shadow-sm font-semibold',
+         progress: 'bg-white/50',
+      },
+      error: {
+         container:
+            'bg-gradient-to-r from-rose-600 via-pink-600 to-red-600 text-white border border-white/20 shadow-xl shadow-rose-600/30',
+         iconBadge: 'bg-white/20 text-white backdrop-blur-sm',
+         title: 'text-white font-bold',
+         desc: 'text-rose-100',
+         close: 'text-white/80 hover:text-white hover:bg-white/20',
+         action:
+            'bg-white text-rose-700 hover:bg-white/95 shadow-sm font-semibold',
+         progress: 'bg-white/50',
+      },
+      loading: {
+         container:
+            'bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-700 text-white border border-white/20 shadow-xl shadow-indigo-600/30',
+         iconBadge: 'bg-white/20 text-white backdrop-blur-sm',
+         title: 'text-white font-bold',
+         desc: 'text-indigo-100',
+         close: 'text-white/80 hover:text-white hover:bg-white/20',
+         action:
+            'bg-white text-purple-700 hover:bg-white/95 shadow-sm font-semibold',
+         progress: 'bg-white/50',
+      },
+   },
+   outline: {
+      info: {
+         container:
+            'border-2 border-blue-500/80 bg-cc-surface text-cc-text shadow-xl shadow-blue-500/10',
+         iconBadge: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+         title: 'text-cc-text font-semibold',
+         desc: 'text-cc-muted',
+         close: 'text-cc-muted hover:text-cc-text hover:bg-cc-overlay/5',
+         action: 'bg-blue-500 text-white hover:bg-blue-600 shadow-sm',
+         progress: 'bg-blue-500',
+      },
+      success: {
+         container:
+            'border-2 border-emerald-500/80 bg-cc-surface text-cc-text shadow-xl shadow-emerald-500/10',
+         iconBadge: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+         title: 'text-cc-text font-semibold',
+         desc: 'text-cc-muted',
+         close: 'text-cc-muted hover:text-cc-text hover:bg-cc-overlay/5',
+         action: 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm',
+         progress: 'bg-emerald-500',
+      },
+      warning: {
+         container:
+            'border-2 border-amber-500/80 bg-cc-surface text-cc-text shadow-xl shadow-amber-500/10',
+         iconBadge: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+         title: 'text-cc-text font-semibold',
+         desc: 'text-cc-muted',
+         close: 'text-cc-muted hover:text-cc-text hover:bg-cc-overlay/5',
+         action: 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm',
+         progress: 'bg-amber-500',
+      },
+      error: {
+         container:
+            'border-2 border-rose-500/80 bg-cc-surface text-cc-text shadow-xl shadow-rose-500/10',
+         iconBadge: 'bg-rose-500/15 text-rose-600 dark:text-rose-400',
+         title: 'text-cc-text font-semibold',
+         desc: 'text-cc-muted',
+         close: 'text-cc-muted hover:text-cc-text hover:bg-cc-overlay/5',
+         action: 'bg-rose-500 text-white hover:bg-rose-600 shadow-sm',
+         progress: 'bg-rose-500',
+      },
+      loading: {
+         container:
+            'border-2 border-cc-primary/80 bg-cc-surface text-cc-text shadow-xl shadow-cc-primary/10',
+         iconBadge: 'bg-cc-primary/15 text-cc-primary',
+         title: 'text-cc-text font-semibold',
+         desc: 'text-cc-muted',
+         close: 'text-cc-muted hover:text-cc-text hover:bg-cc-overlay/5',
+         action: 'bg-cc-primary text-cc-on-primary hover:opacity-90 shadow-sm',
+         progress: 'bg-cc-primary',
+      },
+   },
+   default: {
+      info: {
+         container:
+            'border border-cc-overlay/10 bg-cc-surface text-cc-text shadow-xl shadow-cc-scrim/15 border-l-4 border-l-blue-500',
+         iconBadge: 'text-blue-500 bg-blue-500/10',
+         title: 'text-cc-text font-semibold',
+         desc: 'text-cc-muted',
+         close: 'text-cc-muted hover:text-cc-text hover:bg-cc-overlay/5',
+         action: 'text-blue-600 hover:underline font-semibold',
+         progress: 'bg-blue-500',
+      },
+      success: {
+         container:
+            'border border-cc-overlay/10 bg-cc-surface text-cc-text shadow-xl shadow-cc-scrim/15 border-l-4 border-l-emerald-500',
+         iconBadge: 'text-emerald-500 bg-emerald-500/10',
+         title: 'text-cc-text font-semibold',
+         desc: 'text-cc-muted',
+         close: 'text-cc-muted hover:text-cc-text hover:bg-cc-overlay/5',
+         action: 'text-emerald-600 hover:underline font-semibold',
+         progress: 'bg-emerald-500',
+      },
+      warning: {
+         container:
+            'border border-cc-overlay/10 bg-cc-surface text-cc-text shadow-xl shadow-cc-scrim/15 border-l-4 border-l-amber-500',
+         iconBadge: 'text-amber-500 bg-amber-500/10',
+         title: 'text-cc-text font-semibold',
+         desc: 'text-cc-muted',
+         close: 'text-cc-muted hover:text-cc-text hover:bg-cc-overlay/5',
+         action: 'text-amber-600 hover:underline font-semibold',
+         progress: 'bg-amber-500',
+      },
+      error: {
+         container:
+            'border border-cc-overlay/10 bg-cc-surface text-cc-text shadow-xl shadow-cc-scrim/15 border-l-4 border-l-red-500',
+         iconBadge: 'text-red-500 bg-red-500/10',
+         title: 'text-cc-text font-semibold',
+         desc: 'text-cc-muted',
+         close: 'text-cc-muted hover:text-cc-text hover:bg-cc-overlay/5',
+         action: 'text-red-600 hover:underline font-semibold',
+         progress: 'bg-red-500',
+      },
+      loading: {
+         container:
+            'border border-cc-overlay/10 bg-cc-surface text-cc-text shadow-xl shadow-cc-scrim/15 border-l-4 border-l-cc-primary',
+         iconBadge: 'text-cc-primary bg-cc-primary/10',
+         title: 'text-cc-text font-semibold',
+         desc: 'text-cc-muted',
+         close: 'text-cc-muted hover:text-cc-text hover:bg-cc-overlay/5',
+         action: 'text-cc-primary hover:underline font-semibold',
+         progress: 'bg-cc-primary',
+      },
+   },
+};
 
-    >
-
-        <div className="min-w-0">
-
-            {title && <p className="mb-1 font-semibold">{title}</p>}
-
-            <div className="leading-relaxed">{children}</div>
-
-        </div>
-
-        {dismissible && (
-
-            <button
-
-                type="button"
-
-                aria-label="Dismiss alert"
-
-                onClick={onClose}
-
-                className="shrink-0 rounded-md px-2 py-1 text-lg leading-none opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
-
-            >
-
-                ×
-
-            </button>
-
-        )}
-
-    </div>
-
-)
-
-
+const defaultVariantIcons = {
+   info: <InfoCircleRoundedIcon size={20} strokeWidth={2.2} />,
+   success: <CheckCircleRoundedIcon size={20} strokeWidth={2.2} />,
+   warning: <AlertTriangleRoundedIcon size={20} strokeWidth={2.2} />,
+   error: <AlertCircleRoundedIcon size={20} strokeWidth={2.2} />,
+   loading: <SpinnerRoundedIcon size={20} strokeWidth={2.5} />,
+};
 
 export const Toast = ({
-    variant = 'info',
-    title,
-    children,
-    duration = 5000,
-    action,
-    onClose,
-    className = ''
+   variant = 'info',
+   effect = 'glass',
+   title,
+   children,
+   message,
+   duration = 5000,
+   action,
+   icon,
+   progress = true,
+   pauseOnHover = true,
+   closable = true,
+   onClose,
+   className = '',
+   style = {},
 }) => {
-    useEffect(() => {
-        if (!duration || !onClose) return undefined
-        const timer = window.setTimeout(onClose, duration)
-        return () => window.clearTimeout(timer)
-    }, [duration, onClose])
+   const [isPaused, setIsPaused] = useState(false);
+   const remainingTimeRef = useRef(duration);
+   const startTimeRef = useRef(Date.now());
 
-    const variantClasses = {
-        info: 'border-l-4 border-l-blue-500',
-        success: 'border-l-4 border-l-emerald-500',
-        warning: 'border-l-4 border-l-amber-500',
-        error: 'border-l-4 border-l-red-500'
-    }
+   useEffect(() => {
+      if (!duration || !onClose) return undefined;
+      if (isPaused) return undefined;
 
-    return (
-        <div
-            role={variant === 'error' ? 'alert' : 'status'}
-            className={`pointer-events-auto w-full rounded-xl border border-cc-overlay/10 bg-cc-surface p-4 text-sm text-cc-text shadow-xl shadow-cc-scrim/15 ${variantClasses[variant] || variantClasses.info} ${className}`}
-        >
-            <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                    {title && <p className="mb-1 font-semibold">{title}</p>}
-                    <div className="text-cc-muted">{children}</div>
-                    {action && (
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                action.onClick?.(e)
-                                onClose?.()
-                            }}
-                            className="mt-2 text-xs font-semibold text-cc-primary hover:underline block"
-                        >
-                            {action.label}
-                        </button>
-                    )}
-                </div>
-                {onClose && (
-                    <button
+      startTimeRef.current = Date.now();
+      const timer = window.setTimeout(() => {
+         onClose?.();
+      }, remainingTimeRef.current);
+
+      return () => {
+         window.clearTimeout(timer);
+         remainingTimeRef.current -= Date.now() - startTimeRef.current;
+      };
+   }, [duration, onClose, isPaused]);
+
+   const handleMouseEnter = () => {
+      if (pauseOnHover) setIsPaused(true);
+   };
+
+   const handleMouseLeave = () => {
+      if (pauseOnHover) setIsPaused(false);
+   };
+
+   const resolvedEffect = toastVariantStyles[effect] ? effect : 'glass';
+   const resolvedVariant = toastVariantStyles[resolvedEffect][variant]
+      ? variant
+      : 'info';
+   const currentStyles = toastVariantStyles[resolvedEffect][resolvedVariant];
+
+   const resolvedIcon =
+      icon === false || icon === null
+         ? null
+         : icon !== undefined
+           ? icon
+           : defaultVariantIcons[resolvedVariant] || defaultVariantIcons.info;
+
+   return (
+      <div
+         role={variant === 'error' ? 'alert' : 'status'}
+         onMouseEnter={handleMouseEnter}
+         onMouseLeave={handleMouseLeave}
+         className={`relative pointer-events-auto w-full overflow-hidden rounded-2xl p-3.5 sm:p-4 text-sm transition-all duration-200 ${currentStyles.container} ${className}`}
+         style={style}>
+         <div
+            className={`flex ${title ? 'items-start' : 'items-center'} gap-3`}>
+            {resolvedIcon && (
+               <div
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${currentStyles.iconBadge}`}>
+                  {resolvedIcon}
+               </div>
+            )}
+            <div className="min-w-0 flex-1 -mt-3">
+               {title && (
+                  <p
+                     className={`text-[14px] font-semibold leading-6 tracking-tight ${currentStyles.title}`}>
+                     {title}
+                  </p>
+               )}
+               <div
+                  className={`text-[13px] leading-5 ${currentStyles.desc} ${title ? 'mt-1' : 'leading-6'}`}>
+                  {children || message}
+               </div>
+               {action && (
+                  <div className="mt-2.5 flex items-center gap-2">
+                     <button
                         type="button"
-                        aria-label="Close notification"
-                        onClick={onClose}
-                        className="shrink-0 rounded-md px-2 py-1 text-lg leading-none text-cc-muted transition-colors hover:bg-cc-overlay/5 hover:text-cc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cc-primary/40"
-                    >
-                        ×
-                    </button>
-                )}
+                        onClick={(e) => {
+                           action.onClick?.(e);
+                           onClose?.();
+                        }}
+                        className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-transform active:scale-95 ${currentStyles.action}`}>
+                        {action.label}
+                     </button>
+                  </div>
+               )}
             </div>
-        </div>
-    )
-}
+            {onClose && closable !== false && (
+               <button
+                  type="button"
+                  aria-label="Close notification"
+                  onClick={onClose}
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cc-primary/40 ${currentStyles.close}`}>
+                  <CloseRounded style={{ fontSize: 13 }} />
+               </button>
+            )}
+         </div>
 
-const ToastContext = createContext(null)
+         {progress && duration > 0 && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 overflow-hidden rounded-b-2xl bg-black/5 dark:bg-white/10">
+               <motion.div
+                  initial={{ width: '100%' }}
+                  animate={{ width: isPaused ? undefined : '0%' }}
+                  transition={{ duration: duration / 1000, ease: 'linear' }}
+                  className={`h-full ${currentStyles.progress}`}
+               />
+            </div>
+         )}
+      </div>
+   );
+};
 
-
+const ToastContext = createContext(null);
 
 export const useToast = () => {
+   const context = useContext(ToastContext);
+   if (!context)
+      throw new Error('useToast must be used within a ToastProvider');
+   return context;
+};
 
-    const context = useContext(ToastContext)
+export const ToastProvider = ({
+   children,
+   position = 'top-right',
+   limit = 5,
+   duration = 5000,
+   effect = 'glass',
+   progress = true,
+   pauseOnHover = true,
+   closable = true,
+}) => {
+   const [toasts, setToasts] = useState([]);
+   const nextId = useRef(0);
 
-    if (!context) throw new Error('useToast must be used within a ToastProvider')
+   const dismiss = useCallback((id) => {
+      setToasts((current) => current.filter((toast) => toast.id !== id));
+   }, []);
 
-    return context
+   const toast = useCallback(
+      (message, options = {}) => {
+         const id = ++nextId.current;
+         setToasts((current) => [
+            ...current.slice(-(Math.max(1, limit) - 1)),
+            {
+               id,
+               message: message ?? '',
+               effect: options.effect ?? effect,
+               progress: options.progress ?? progress,
+               pauseOnHover: options.pauseOnHover ?? pauseOnHover,
+               closable: options.closable ?? closable,
+               ...options,
+               duration: options.duration ?? duration,
+            },
+         ]);
+         return id;
+      },
+      [duration, limit, effect, progress, pauseOnHover, closable],
+   );
 
-}
+   const actions = useMemo(
+      () => ({
+         toast,
+         success: (message, options = {}) =>
+            toast(message, { ...options, variant: 'success' }),
+         error: (message, options = {}) =>
+            toast(message, { ...options, variant: 'error' }),
+         warning: (message, options = {}) =>
+            toast(message, { ...options, variant: 'warning' }),
+         info: (message, options = {}) =>
+            toast(message, { ...options, variant: 'info' }),
+         loading: (message, options = {}) =>
+            toast(message, { ...options, variant: 'loading', duration: 0 }),
+         dismiss,
+         dismissAll: () => setToasts([]),
+         promise: (
+            prom,
+            {
+               loading = 'Loading...',
+               success = 'Success',
+               error = 'Something went wrong',
+               ...opts
+            } = {},
+         ) => {
+            const id = toast(loading, {
+               variant: 'loading',
+               duration: 0,
+               ...opts,
+            });
+            const p = typeof prom === 'function' ? prom() : prom;
+            return Promise.resolve(p)
+               .then((data) => {
+                  const msg =
+                     typeof success === 'function' ? success(data) : success;
+                  setToasts((curr) =>
+                     curr.map((t) =>
+                        t.id === id
+                           ? {
+                                ...t,
+                                message: msg,
+                                variant: 'success',
+                                duration: opts.duration ?? duration,
+                             }
+                           : t,
+                     ),
+                  );
+                  return data;
+               })
+               .catch((err) => {
+                  const msg = typeof error === 'function' ? error(err) : error;
+                  setToasts((curr) =>
+                     curr.map((t) =>
+                        t.id === id
+                           ? {
+                                ...t,
+                                message: msg,
+                                variant: 'error',
+                                duration: opts.duration ?? duration,
+                             }
+                           : t,
+                     ),
+                  );
+                  throw err;
+               });
+         },
+      }),
+      [dismiss, toast, duration],
+   );
 
+   const positionClasses = {
+      'top-left': 'left-4 top-4 sm:left-6 sm:top-6',
+      'top-center': 'left-1/2 top-4 -translate-x-1/2 sm:top-6',
+      'top-right': 'right-4 top-4 sm:right-6 sm:top-6',
+      'bottom-left': 'bottom-4 left-4 sm:bottom-6 sm:left-6',
+      'bottom-center': 'bottom-4 left-1/2 -translate-x-1/2 sm:bottom-6',
+      'bottom-right': 'bottom-4 right-4 sm:bottom-6 sm:right-6',
+   };
 
+   const isTop = position.startsWith('top');
 
-export const ToastProvider = ({ children, position = 'top-right', limit = 5, duration = 5000 }) => {
-
-    const [toasts, setToasts] = useState([])
-
-    const nextId = useRef(0)
-
-    const dismiss = useCallback((id) => {
-
-        setToasts((current) => current.filter((toast) => toast.id !== id))
-
-    }, [])
-
-    const toast = useCallback(
-
-        (message, options = {}) => {
-
-            const id = ++nextId.current
-
-            setToasts((current) => [
-
-                ...current.slice(-(Math.max(1, limit) - 1)),
-
-                {
-
-                    id,
-
-                    message: message ?? '',
-
-                    ...options,
-
-                    duration: options.duration ?? duration
-
-                }
-
-            ])
-
-            return id
-
-        },
-
-        [duration, limit]
-
-    )
-
-    const actions = useMemo(
-
-        () => ({
-
-            toast,
-
-            success: (message, options = {}) => toast(message, { ...options, variant: 'success' }),
-
-            error: (message, options = {}) => toast(message, { ...options, variant: 'error' }),
-
-            warning: (message, options = {}) => toast(message, { ...options, variant: 'warning' }),
-
-            info: (message, options = {}) => toast(message, { ...options, variant: 'info' }),
-
-            dismiss,
-
-            dismissAll: () => setToasts([]),
-
-            promise: (prom, { loading = 'Loading...', success = 'Success', error = 'Something went wrong' } = {}) => {
-                const id = toast(loading, { variant: 'info', duration: 0 })
-                const p = typeof prom === 'function' ? prom() : prom
-                return Promise.resolve(p)
-                    .then((data) => {
-                        const msg = typeof success === 'function' ? success(data) : success
-                        setToasts((curr) => curr.map((t) => t.id === id ? { ...t, message: msg, variant: 'success', duration } : t))
-                        return data
-                    })
-                    .catch((err) => {
-                        const msg = typeof error === 'function' ? error(err) : error
-                        setToasts((curr) => curr.map((t) => t.id === id ? { ...t, message: msg, variant: 'error', duration } : t))
-                        throw err
-                    })
-            }
-
-        }),
-
-        [dismiss, toast]
-
-    )
-
-    const positionClasses = {
-
-        'top-left': 'left-4 top-4 sm:left-6 sm:top-6',
-
-        'top-center': 'left-1/2 top-4 -translate-x-1/2 sm:top-6',
-
-        'top-right': 'right-4 top-4 sm:right-6 sm:top-6',
-
-        'bottom-left': 'bottom-4 left-4 sm:bottom-6 sm:left-6',
-
-        'bottom-center': 'bottom-4 left-1/2 -translate-x-1/2 sm:bottom-6',
-
-        'bottom-right': 'bottom-4 right-4 sm:bottom-6 sm:right-6'
-
-    }
-
-
-
-    return (
-
-        <ToastContext.Provider value={actions}>
-
-            {children}
-
-            <div
-
-                aria-label="Notifications"
-
-                aria-live="polite"
-
-                className={`pointer-events-none fixed z-[var(--cc-z)] flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3 ${positionClasses[position] || positionClasses['top-right']}`}
-
-            >
-
-                {toasts.map(({ id, message, title, variant, duration: toastDuration, ...options }) => (
-
-                    <Toast
-
+   return (
+      <ToastContext.Provider value={actions}>
+         {children}
+         <div
+            aria-label="Notifications"
+            aria-live="polite"
+            className={`pointer-events-none fixed z-[var(--cc-z)] flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-2.5 ${positionClasses[position] || positionClasses['top-right']}`}>
+            <AnimatePresence mode="popLayout" initial={false}>
+               {toasts.map(
+                  ({
+                     id,
+                     message,
+                     title,
+                     variant,
+                     effect: toastEffect,
+                     duration: toastDuration,
+                     ...options
+                  }) => (
+                     <motion.div
                         key={id}
-
-                        title={title}
-
-                        variant={variant}
-
-                        duration={toastDuration}
-
-                        onClose={() => dismiss(id)}
-
-                        {...options}
-
-                    >
-
-                        {message}
-
-                    </Toast>
-
-                ))}
-
-            </div>
-
-        </ToastContext.Provider>
-
-    )
-
-}
-
-
+                        layout
+                        initial={{
+                           opacity: 0,
+                           y: isTop ? -20 : 20,
+                           scale: 0.92,
+                        }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{
+                           opacity: 0,
+                           scale: 0.85,
+                           transition: { duration: 0.2 },
+                        }}
+                        transition={{
+                           type: 'spring',
+                           stiffness: 450,
+                           damping: 30,
+                        }}
+                        className="w-full pointer-events-auto">
+                        <Toast
+                           title={title}
+                           variant={variant}
+                           effect={toastEffect || effect}
+                           duration={toastDuration}
+                           onClose={() => dismiss(id)}
+                           {...options}>
+                           {message}
+                        </Toast>
+                     </motion.div>
+                  ),
+               )}
+            </AnimatePresence>
+         </div>
+      </ToastContext.Provider>
+   );
+};
 
 export const Progress = ({
+   value,
 
-    value,
+   max = 100,
 
-    max = 100,
+   label,
 
-    label,
+   showValue = false,
 
-    showValue = false,
+   size = 'md',
 
-    size = 'md',
+   className = '',
 
-    className = '',
-
-    ...props
-
+   ...props
 }) => {
+   const isIndeterminate = value === undefined || value === null;
 
-    const isIndeterminate = value === undefined || value === null
+   const safeMax =
+      Number.isFinite(Number(max)) && Number(max) > 0 ? Number(max) : 100;
 
-    const safeMax = Number.isFinite(Number(max)) && Number(max) > 0 ? Number(max) : 100
+   const safeValue = isIndeterminate
+      ? undefined
+      : Math.min(safeMax, Math.max(0, Number(value) || 0));
 
-    const safeValue = isIndeterminate
+   const percent =
+      safeValue === undefined ? undefined : (safeValue / safeMax) * 100;
 
-        ? undefined
+   const heights = {
+      sm: 'h-1',
+      md: 'h-2',
+      lg: 'h-3',
+      small: 'h-1',
+      medium: 'h-2',
+      large: 'h-3',
+   };
+   const safeSize = typeof size === 'string' ? size.toLowerCase() : size;
 
-        : Math.min(safeMax, Math.max(0, Number(value) || 0))
+   return (
+      <div className={`w-full ${className}`}>
+         {(label || showValue) && (
+            <div className="mb-2 flex items-center justify-between gap-3 text-xs font-medium text-cc-muted">
+               {label && <span>{label}</span>}
 
-    const percent = safeValue === undefined ? undefined : (safeValue / safeMax) * 100
-
-    const heights = { sm: 'h-1', md: 'h-2', lg: 'h-3' }
-
-
-
-    return (
-
-        <div className={`w-full ${className}`}>
-
-            {(label || showValue) && (
-
-                <div className="mb-2 flex items-center justify-between gap-3 text-xs font-medium text-cc-muted">
-
-                    {label && <span>{label}</span>}
-
-                    {showValue && <span>{isIndeterminate ? '' : `${Math.round(percent)}%`}</span>}
-
-                </div>
-
-            )}
-
-            <div
-
-                {...props}
-
-                role="progressbar"
-
-                aria-label={props['aria-label'] || label || 'Progress'}
-
-                aria-valuemin={0}
-
-                aria-valuemax={safeMax}
-
-                aria-valuenow={safeValue}
-
-                className={`relative w-full overflow-hidden rounded-full bg-cc-overlay/10 ${heights[size] || heights.md}`}
-
-            >
-
-                <div
-
-                    className={`h-full rounded-full bg-cc-primary transition-[width] duration-300 ease-out ${isIndeterminate ? 'w-1/3 animate-[cc-progress_1.4s_ease-in-out_infinite]' : ''
-
-                        }`}
-
-                    style={isIndeterminate ? undefined : { width: `${percent}%` }}
-
-                />
-
+               {showValue && (
+                  <span>
+                     {isIndeterminate ? '' : `${Math.round(percent)}%`}
+                  </span>
+               )}
             </div>
+         )}
 
-        </div>
-
-    )
-
-}
-
-
+         <div
+            {...props}
+            role="progressbar"
+            aria-label={props['aria-label'] || label || 'Progress'}
+            aria-valuemin={0}
+            aria-valuemax={safeMax}
+            aria-valuenow={safeValue}
+            className={`relative w-full overflow-hidden rounded-full bg-cc-overlay/10 ${heights[safeSize] || heights.md}`}>
+            <div
+               className={`h-full rounded-full bg-cc-primary transition-[width] duration-300 ease-out ${
+                  isIndeterminate
+                     ? 'w-1/3 animate-[cc-progress_1.4s_ease-in-out_infinite]'
+                     : ''
+               }`}
+               style={isIndeterminate ? undefined : { width: `${percent}%` }}
+            />
+         </div>
+      </div>
+   );
+};
 
 export const Skeleton = ({
+   width,
 
-    width,
+   height,
 
-    height,
+   circle = false,
 
-    circle = false,
+   className = '',
 
-    className = '',
+   style,
 
-    style,
-
-    ...props
-
+   ...props
 }) => (
-
-    <span
-
-        {...props}
-
-        aria-hidden="true"
-
-        className={`block animate-pulse bg-cc-overlay/10 ${circle ? 'rounded-full' : 'rounded-lg'} ${className}`}
-
-        style={{ width, height, ...style }}
-
-    />
-
-)
-
-
+   <span
+      {...props}
+      aria-hidden="true"
+      className={`block animate-pulse bg-cc-overlay/10 ${circle ? 'rounded-full' : 'rounded-lg'} ${className}`}
+      style={{ width, height, ...style }}
+   />
+);
 
 export const ColorPicker = forwardRef(
+   (
+      {
+         value,
 
-    (
+         defaultValue = '#635bff',
 
-        {
+         onChange,
 
-            value,
+         disabled = false,
 
-            defaultValue = '#635bff',
+         showValue = true,
 
-            onChange,
+         className = '',
 
-            disabled = false,
+         inputClassName = '',
 
-            showValue = true,
+         ...props
+      },
 
-            className = '',
+      ref,
+   ) => {
+      const isControlled = value !== undefined;
 
-            inputClassName = '',
+      const [innerValue, setInnerValue] = useState(defaultValue);
 
-            ...props
+      const currentValue = isControlled ? value : innerValue;
 
-        },
+      return (
+         <div
+            className={`inline-flex min-h-11 items-center gap-3 rounded-xl border border-cc-overlay/10 bg-cc-surface px-3 py-2 ${className}`}>
+            <input
+               {...props}
+               ref={ref}
+               type="color"
+               value={currentValue}
+               disabled={disabled}
+               onChange={(event) => {
+                  if (!isControlled) setInnerValue(event.target.value);
 
-        ref
+                  onChange?.(event.target.value, event);
+               }}
+               className={`h-8 w-9 cursor-pointer overflow-hidden rounded-lg border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-50 ${inputClassName}`}
+            />
 
-    ) => {
-
-        const isControlled = value !== undefined
-
-        const [innerValue, setInnerValue] = useState(defaultValue)
-
-        const currentValue = isControlled ? value : innerValue
-
-
-
-        return (
-
-            <div className={`inline-flex min-h-11 items-center gap-3 rounded-xl border border-cc-overlay/10 bg-cc-surface px-3 py-2 ${className}`}>
-
-                <input
-
-                    {...props}
-
-                    ref={ref}
-
-                    type="color"
-
-                    value={currentValue}
-
-                    disabled={disabled}
-
-                    onChange={(event) => {
-
-                        if (!isControlled) setInnerValue(event.target.value)
-
-                        onChange?.(event.target.value, event)
-
-                    }}
-
-                    className={`h-8 w-9 cursor-pointer overflow-hidden rounded-lg border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-50 ${inputClassName}`}
-
-                />
-
-                {showValue && (
-
-                    <output className="min-w-16 font-mono text-xs uppercase text-cc-muted">
-
-                        {currentValue}
-
-                    </output>
-
-                )}
-
-            </div>
-
-        )
-
-    }
-
-)
+            {showValue && (
+               <output className="min-w-16 font-mono text-xs uppercase text-cc-muted">
+                  {currentValue}
+               </output>
+            )}
+         </div>
+      );
+   },
+);
 
 /* ===================== INPUT, PICKER & LAYOUT CONTROLS ===================== */
 
-const panelClass = 'border border-cc-overlay/10 bg-cc-surface text-cc-text shadow-2xl shadow-cc-scrim/15'
+const panelClass =
+   'border border-cc-overlay/10 bg-cc-surface text-cc-text shadow-2xl shadow-cc-scrim/15';
 
 export const controlSizes = {
-    sm: 'h-8 px-2.5 text-xs rounded-lg',
-    md: 'h-11 px-4 text-sm rounded-xl',
-    lg: 'h-13 px-5 text-base rounded-xl'
-}
+   sm: 'h-8 px-2.5 text-xs rounded-lg',
+   md: 'h-11 px-4 text-sm rounded-xl',
+   lg: 'h-12 px-5 text-base rounded-xl',
+   small: 'h-8 px-2.5 text-xs rounded-lg',
+   medium: 'h-11 px-4 text-sm rounded-xl',
+   large: 'h-12 px-5 text-base rounded-xl',
+};
+
+export const getControlSizeClass = (sz) => {
+   if (!sz) return controlSizes.md;
+   const key = typeof sz === 'string' ? sz.toLowerCase() : sz;
+   return controlSizes[key] || controlSizes.md;
+};
 
 const filterDomProps = (props = {}) => {
-    const {
-        container,
-        virtualized,
-        menuStyle,
-        menuStyleOverride,
-        renderExtraFooter,
-        renderMenuItem,
-        preventOverflow,
-        placement,
-        cleanable,
-        searchable,
-        menuMaxHeight,
-        formatter,
-        parser,
-        checkedChildren,
-        unCheckedChildren,
-        speaker,
-        renderTitle,
-        characterSet,
-        containerStyle,
-        onCreateNew,
-        createNewText,
-        shortcuts,
-        disabledDate,
-        groupBy,
-        creatable,
-        onSearch,
-        tagDisplay,
-        loading,
-        clearable,
-        prefix,
-        suffix,
-        closeOnEsc,
-        closeOnBackdropClick,
-        bodyLock,
-        action,
-        ...validProps
-    } = props
-    return validProps
-}
+   const {
+      container,
+      virtualized,
+      menuStyle,
+      menuStyleOverride,
+      renderExtraFooter,
+      renderMenuItem,
+      preventOverflow,
+      placement,
+      cleanable,
+      searchable,
+      menuMaxHeight,
+      formatter,
+      parser,
+      checkedChildren,
+      unCheckedChildren,
+      speaker,
+      renderTitle,
+      characterSet,
+      containerStyle,
+      onCreateNew,
+      createNewText,
+      shortcuts,
+      disabledDate,
+      groupBy,
+      creatable,
+      onSearch,
+      tagDisplay,
+      loading,
+      clearable,
+      prefix,
+      suffix,
+      closeOnEsc,
+      closeOnBackdropClick,
+      bodyLock,
+      action,
+      ...validProps
+   } = props;
+   return validProps;
+};
 
-const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
+const useIsomorphicLayoutEffect =
+   typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 const useDropdownPosition = (open, triggerRef, menuWidthOverride = null) => {
-    const [coords, setCoords] = useState({
-        top: 0,
-        left: 0,
-        width: 220,
-        placement: 'bottom'
-    })
+   const [coords, setCoords] = useState({
+      top: 0,
+      left: 0,
+      width: 220,
+      placement: 'bottom',
+   });
 
-    const updatePosition = useCallback(() => {
-        if (!triggerRef.current) return
-        const rect = triggerRef.current.getBoundingClientRect()
-        const spaceBelow = window.innerHeight - rect.bottom
-        const placeAbove = spaceBelow < 280 && rect.top > 280
-        const width = menuWidthOverride || Math.max(rect.width, 200)
-        let left = rect.left
-        if (left + width > window.innerWidth - 12) {
-            left = Math.max(12, window.innerWidth - width - 12)
-        }
+   const updatePosition = useCallback(() => {
+      if (!triggerRef.current) return;
+      const rect = triggerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const placeAbove = spaceBelow < 280 && rect.top > 280;
+      const width = menuWidthOverride || Math.max(rect.width, 200);
+      let left = rect.left;
+      if (left + width > window.innerWidth - 12) {
+         left = Math.max(12, window.innerWidth - width - 12);
+      }
 
-        setCoords({
-            top: placeAbove ? rect.top - 6 : rect.bottom + 6,
-            left,
-            width,
-            placement: placeAbove ? 'top' : 'bottom'
-        })
-    }, [triggerRef, menuWidthOverride])
+      setCoords({
+         top: placeAbove ? rect.top - 6 : rect.bottom + 6,
+         left,
+         width,
+         placement: placeAbove ? 'top' : 'bottom',
+      });
+   }, [triggerRef, menuWidthOverride]);
 
-    useIsomorphicLayoutEffect(() => {
-        if (open) {
-            updatePosition()
-            window.addEventListener('resize', updatePosition)
-            window.addEventListener('scroll', updatePosition, true)
-            return () => {
-                window.removeEventListener('resize', updatePosition)
-                window.removeEventListener('scroll', updatePosition, true)
-            }
-        }
-    }, [open, updatePosition])
+   useIsomorphicLayoutEffect(() => {
+      if (open) {
+         updatePosition();
+         window.addEventListener('resize', updatePosition);
+         window.addEventListener('scroll', updatePosition, true);
+         return () => {
+            window.removeEventListener('resize', updatePosition);
+            window.removeEventListener('scroll', updatePosition, true);
+         };
+      }
+   }, [open, updatePosition]);
 
-    return { coords, updatePosition }
-}
+   return { coords, updatePosition };
+};
 
-export const Input = forwardRef((
-    {
-        value: controlledValue,
-        defaultValue,
-        onChange,
-        placeholder,
-        type = 'text',
-        size = 'md',
-        prefix,
-        suffix,
-        clearable = false,
-        disabled = false,
-        name,
-        className = '',
-        ...props
-    },
-    ref
-) => {
-    const isControlled = controlledValue !== undefined
-    const [innerValue, setInnerValue] = useState(defaultValue ?? '')
-    const currentValue = isControlled ? (controlledValue ?? '') : innerValue
+export const Input = forwardRef(
+   (
+      {
+         value: controlledValue,
+         defaultValue,
+         onChange,
+         placeholder,
+         type = 'text',
+         size = 'md',
+         prefix,
+         suffix,
+         clearable = false,
+         disabled = false,
+         name,
+         className = '',
+         ...props
+      },
+      ref,
+   ) => {
+      const isControlled = controlledValue !== undefined;
+      const [innerValue, setInnerValue] = useState(defaultValue ?? '');
+      const currentValue = isControlled ? (controlledValue ?? '') : innerValue;
 
-    const handleChange = (e) => {
-        if (!isControlled) setInnerValue(e.target.value)
-        onChange?.(e.target.value, e)
-    }
+      const handleChange = (e) => {
+         if (!isControlled) setInnerValue(e.target.value);
+         onChange?.(e.target.value, e);
+      };
 
-    const handleClear = (e) => {
-        e.stopPropagation()
-        if (!isControlled) setInnerValue('')
-        onChange?.('', e)
-    }
+      const handleClear = (e) => {
+         e.stopPropagation();
+         if (!isControlled) setInnerValue('');
+         onChange?.('', e);
+      };
 
-    const sizeClass = controlSizes[size] || controlSizes.md
+      const sizeClass = getControlSizeClass(size);
 
-    if (prefix || suffix || clearable) {
-        return (
+      if (prefix || suffix || clearable) {
+         return (
             <div
-                className={`relative flex items-center w-full rounded-xl border border-cc-overlay/10 bg-cc-surface transition-all focus-within:border-cc-primary/50 focus-within:ring-4 focus-within:ring-cc-primary/10 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
-            >
-                {prefix && <div className="flex shrink-0 items-center pl-3 text-cc-muted">{prefix}</div>}
-                <input
-                    {...filterDomProps(props)}
-                    ref={ref}
-                    type={type}
-                    name={name}
-                    disabled={disabled}
-                    value={currentValue}
-                    placeholder={placeholder}
-                    onChange={handleChange}
-                    className={`w-full bg-transparent border-0 outline-none font-normal text-cc-text placeholder:text-cc-subtle disabled:cursor-not-allowed ${sizeClass} ${prefix ? 'pl-2' : ''} ${suffix || (clearable && currentValue) ? 'pr-2' : ''}`}
-                />
-                {clearable && currentValue && !disabled && (
-                    <button
-                        type="button"
-                        onClick={handleClear}
-                        tabIndex={-1}
-                        aria-label="Clear input"
-                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text mr-2"
-                    >
-                        <CloseRounded style={{ fontSize: 14 }} />
-                    </button>
-                )}
-                {suffix && <div className="flex shrink-0 items-center pr-3 text-cc-muted">{suffix}</div>}
+               className={`relative flex items-center w-full rounded-xl border border-cc-overlay/10 bg-cc-surface transition-all focus-within:border-cc-primary/50 focus-within:ring-4 focus-within:ring-cc-primary/10 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}>
+               {prefix && (
+                  <div className="flex shrink-0 items-center pl-3 text-cc-muted">
+                     {prefix}
+                  </div>
+               )}
+               <input
+                  {...filterDomProps(props)}
+                  ref={ref}
+                  type={type}
+                  name={name}
+                  disabled={disabled}
+                  value={currentValue}
+                  placeholder={placeholder}
+                  onChange={handleChange}
+                  className={`w-full bg-transparent border-0 outline-none font-normal text-cc-text placeholder:text-cc-subtle disabled:cursor-not-allowed ${sizeClass} ${prefix ? 'pl-2' : ''} ${suffix || (clearable && currentValue) ? 'pr-2' : ''}`}
+               />
+               {clearable && currentValue && !disabled && (
+                  <button
+                     type="button"
+                     onClick={handleClear}
+                     tabIndex={-1}
+                     aria-label="Clear input"
+                     className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text mr-2">
+                     <CloseRounded style={{ fontSize: 14 }} />
+                  </button>
+               )}
+               {suffix && (
+                  <div className="flex shrink-0 items-center pr-3 text-cc-muted">
+                     {suffix}
+                  </div>
+               )}
             </div>
-        )
-    }
+         );
+      }
 
-    return (
-        <input
+      return (
+         <input
             {...filterDomProps(props)}
             ref={ref}
             type={type}
@@ -1528,2836 +1627,2962 @@ export const Input = forwardRef((
             placeholder={placeholder}
             onChange={handleChange}
             className={`w-full border border-cc-overlay/10 bg-cc-surface font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${sizeClass} ${className}`}
-        />
-    )
-})
+         />
+      );
+   },
+);
 
-export const InputGroup = ({ children, size = 'md', className = '', ...props }) => {
-    const sizeClass = controlSizes[size] || controlSizes.md
-    return (
-        <div
-            {...filterDomProps(props)}
-            className={`flex ${sizeClass.split(' ')[0]} items-center overflow-hidden rounded-xl border border-cc-overlay/10 bg-cc-surface transition-all focus-within:border-cc-primary/50 focus-within:ring-4 focus-within:ring-cc-primary/10 ${className}`}
-        >
-            {children}
-        </div>
-    )
-}
+export const InputGroup = ({
+   children,
+   size = 'md',
+   className = '',
+   ...props
+}) => {
+   const sizeClass = getControlSizeClass(size);
+   return (
+      <div
+         {...filterDomProps(props)}
+         className={`flex ${sizeClass.split(' ')[0]} items-center overflow-hidden rounded-xl border border-cc-overlay/10 bg-cc-surface transition-all focus-within:border-cc-primary/50 focus-within:ring-4 focus-within:ring-cc-primary/10 ${className}`}>
+         {children}
+      </div>
+   );
+};
 
 InputGroup.Button = ({ children, className = '', onClick, ...props }) => (
-    <button
-        {...props}
-        type="button"
-        onClick={onClick}
-        className={`flex h-full shrink-0 items-center justify-center px-3 text-cc-muted transition-colors hover:text-cc-primary ${className}`}
-    >
-        {children}
-    </button>
-)
+   <button
+      {...props}
+      type="button"
+      onClick={onClick}
+      className={`flex h-full shrink-0 items-center justify-center px-3 text-cc-muted transition-colors hover:text-cc-primary ${className}`}>
+      {children}
+   </button>
+);
 
 export const SelectPicker = forwardRef(
-    (
-        {
-            data = [],
-            value: controlledValue,
-            defaultValue,
-            onChange,
-            placeholder = 'Select...',
-            searchable = true,
-            cleanable = true,
-            style,
-            size = 'md',
-            className = '',
-            menuMaxHeight = 260,
-            menuWidth,
-            menuStyle,
-            disabled = false,
-            loading = false,
-            name,
-            onSearch,
-            groupBy,
-            creatable = false,
-            renderMenuItem,
-            renderExtraFooter,
-            onCreateNew,
-            createNewText,
-            ...props
-        },
-        outerRef
-    ) => {
-        const [open, setOpen] = useState(false)
-        const [query, setQuery] = useState('')
-        const [focusedIndex, setFocusedIndex] = useState(-1)
-        const triggerRef = useRef(null)
-        const menuRef = useRef(null)
-        const listRef = useRef(null)
-        const resolvedMenuWidth = menuStyle?.width ?? menuWidth ?? null
-        const { coords, updatePosition } = useDropdownPosition(open, triggerRef, resolvedMenuWidth)
+   (
+      {
+         data = [],
+         value: controlledValue,
+         defaultValue,
+         onChange,
+         placeholder = 'Select...',
+         searchable = true,
+         cleanable = true,
+         style,
+         size = 'md',
+         className = '',
+         menuMaxHeight = 260,
+         menuWidth,
+         menuStyle,
+         disabled = false,
+         loading = false,
+         name,
+         onSearch,
+         groupBy,
+         creatable = false,
+         renderMenuItem,
+         renderExtraFooter,
+         onCreateNew,
+         createNewText,
+         ...props
+      },
+      outerRef,
+   ) => {
+      const [open, setOpen] = useState(false);
+      const [query, setQuery] = useState('');
+      const [focusedIndex, setFocusedIndex] = useState(-1);
+      const triggerRef = useRef(null);
+      const menuRef = useRef(null);
+      const listRef = useRef(null);
+      const resolvedMenuWidth = menuStyle?.width ?? menuWidth ?? null;
+      const { coords, updatePosition } = useDropdownPosition(
+         open,
+         triggerRef,
+         resolvedMenuWidth,
+      );
 
-        const isControlled = controlledValue !== undefined
-        const [innerValue, setInnerValue] = useState(defaultValue)
-        const currentValue = isControlled ? controlledValue : innerValue
+      const isControlled = controlledValue !== undefined;
+      const [innerValue, setInnerValue] = useState(defaultValue);
+      const currentValue = isControlled ? controlledValue : innerValue;
 
-        const handleClose = useCallback(() => {
-            setOpen(false)
-            setQuery('')
-            setFocusedIndex(-1)
-        }, [])
+      const handleClose = useCallback(() => {
+         setOpen(false);
+         setQuery('');
+         setFocusedIndex(-1);
+      }, []);
 
-        useImperativeHandle(outerRef, () => ({
-            close: handleClose,
-            open: () => {
-                updatePosition()
-                setOpen(true)
-            }
-        }))
+      useImperativeHandle(outerRef, () => ({
+         close: handleClose,
+         open: () => {
+            updatePosition();
+            setOpen(true);
+         },
+      }));
 
-        useEffect(() => {
-            const handler = (e) => {
-                if (
-                    triggerRef.current &&
-                    !triggerRef.current.contains(e.target) &&
-                    menuRef.current &&
-                    !menuRef.current.contains(e.target)
-                ) {
-                    handleClose()
-                }
-            }
-            document.addEventListener('mousedown', handler)
-            return () => document.removeEventListener('mousedown', handler)
-        }, [handleClose])
-
-        const rawData = Array.isArray(data) ? data : []
-        const selected = rawData.find((item) => String(item?.value) === String(currentValue))
-
-        const filtered = useMemo(() => {
-            if (!searchable || !query) return rawData
-            const q = query.toLowerCase()
-            return rawData.filter((item) =>
-                String(item?.label ?? item?.value ?? '')
-                    .toLowerCase()
-                    .includes(q)
-            )
-        }, [rawData, query, searchable])
-
-        const displayed = filtered
-
-        const handleSearchChange = (e) => {
-            const val = e.target.value
-            setQuery(val)
-            onSearch?.(val)
-        }
-
-        const handleSelect = (val, item) => {
-            if (!isControlled) setInnerValue(val)
-            onChange?.(val, item)
-            handleClose()
-        }
-
-        const handleClear = (e) => {
-            e.stopPropagation()
-            if (!isControlled) setInnerValue('')
-            onChange?.('', null)
-        }
-
-        const hasExactMatch = rawData.some((i) => String(i?.label || i?.value).toLowerCase() === query.trim().toLowerCase())
-        const showCreatable = creatable && query.trim() !== '' && !hasExactMatch
-
-        const extraCount = (renderExtraFooter || onCreateNew ? 1 : 0) + (showCreatable ? 1 : 0)
-        const totalCount = displayed.length + extraCount
-
-        useEffect(() => {
-            if (open) {
-                setFocusedIndex(displayed.length > 0 ? 0 : showCreatable ? 0 : -1)
-            }
-        }, [open, query, displayed.length, showCreatable])
-
-        useEffect(() => {
-            if (open && focusedIndex >= 0 && listRef.current) {
-                const targetEl = listRef.current.children[focusedIndex]
-                if (targetEl && typeof targetEl.scrollIntoView === 'function') {
-                    targetEl.scrollIntoView({ block: 'nearest' })
-                }
-            }
-        }, [focusedIndex, open])
-
-        const handleKeyDown = (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                if (open) handleClose()
-                return
-            }
-            e.stopPropagation()
-            if (!open) {
-                if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
-                    e.preventDefault()
-                    updatePosition()
-                    setOpen(true)
-                }
-                return
-            }
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault()
-                setFocusedIndex((prev) => (prev < totalCount - 1 ? prev + 1 : 0))
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault()
-                setFocusedIndex((prev) => (prev > 0 ? prev - 1 : totalCount - 1))
-            } else if (e.key === 'Enter') {
-                e.preventDefault()
-                if (focusedIndex >= 0 && focusedIndex < displayed.length) {
-                    const item = displayed[focusedIndex]
-                    handleSelect(item?.value, item)
-                } else if (showCreatable && focusedIndex === displayed.length) {
-                    const customItem = { label: query.trim(), value: query.trim() }
-                    handleSelect(customItem.value, customItem)
-                } else if (focusedIndex === totalCount - 1 && (renderExtraFooter || onCreateNew)) {
-                    handleClose()
-                    if (onCreateNew) {
-                        onCreateNew()
-                    } else if (typeof renderExtraFooter === 'function') {
-                        renderExtraFooter(handleClose)
-                    }
-                }
-            } else if (e.key === 'Escape') {
-                e.preventDefault()
-                handleClose()
-            }
-        }
-
-        const sizeClass = controlSizes[size] || controlSizes.md
-
-        const menuContent = (
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        ref={menuRef}
-                        initial={{
-                            opacity: 0,
-                            y: coords.placement === 'top' ? 4 : -4
-                        }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{
-                            opacity: 0,
-                            y: coords.placement === 'top' ? 4 : -4
-                        }}
-                        transition={{ duration: 0.1, ease: 'easeOut' }}
-                        style={{
-                            ...menuStyle,
-                            position: 'fixed',
-                            top: coords.placement === 'top' ? undefined : coords.top,
-                            bottom: coords.placement === 'top' ? window.innerHeight - coords.top : undefined,
-                            left: coords.left,
-                            width: coords.width,
-                            maxWidth: 'calc(100vw - 24px)',
-                            zIndex: menuStyle?.zIndex ?? 'var(--cc-z)'
-                        }}
-                        className={`overflow-hidden rounded-2xl ${panelClass}`}
-                    >
-                        {searchable && (
-                            <div className="border-b border-cc-overlay/10 p-2">
-                                <div className="flex items-center rounded-xl border border-cc-overlay/10 bg-cc-overlay/5 px-3">
-                                    <SearchRoundedIcon size={17} strokeWidth={2} className="shrink-0 text-cc-muted" />
-                                    <input
-                                        autoFocus
-                                        value={query}
-                                        onChange={handleSearchChange}
-                                        onKeyDown={handleKeyDown}
-                                        placeholder="Search..."
-                                        className="h-10 w-full bg-transparent px-2 text-sm text-cc-text outline-none placeholder:text-cc-subtle"
-                                    />
-                                    {loading && (
-                                        <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-cc-primary border-r-transparent" />
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                        <div
-                            ref={listRef}
-                            className="overflow-y-auto p-1.5 customScrollbar"
-                            style={{ maxHeight: menuMaxHeight }}
-                        >
-                            {displayed.length === 0 && !showCreatable ? (
-                                <div className="px-4 py-6 text-center text-sm text-cc-muted">No results found</div>
-                            ) : (
-                                <>
-                                    {displayed.map((item, idx) => {
-                                        const isSelected = String(item?.value) === String(currentValue)
-                                        const isFocused = idx === focusedIndex
-                                        const labelText = item?.label ?? item?.value
-                                        const isGroupHeader = groupBy && (idx === 0 || item[groupBy] !== displayed[idx - 1][groupBy])
-
-                                        return (
-                                            <React.Fragment key={String(item?.value ?? idx)}>
-                                                {isGroupHeader && item[groupBy] && (
-                                                    <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-cc-muted select-none">
-                                                        {item[groupBy]}
-                                                    </div>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    onMouseEnter={() => setFocusedIndex(idx)}
-                                                    onClick={() => handleSelect(item?.value, item)}
-                                                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${isSelected
-                                                        ? 'bg-cc-primary/10 text-cc-primary font-semibold'
-                                                        : isFocused
-                                                            ? 'bg-cc-overlay/10 text-cc-text'
-                                                            : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
-                                                        }`}
-                                                >
-                                                    {renderMenuItem ? (
-                                                        renderMenuItem(labelText, item)
-                                                    ) : (
-                                                        <span className="truncate">{labelText}</span>
-                                                    )}
-                                                    {isSelected && !renderMenuItem && <span>✓</span>}
-                                                </button>
-                                            </React.Fragment>
-                                        )
-                                    })}
-
-                                    {showCreatable && (
-                                        <button
-                                            type="button"
-                                            onMouseEnter={() => setFocusedIndex(displayed.length)}
-                                            onClick={() => {
-                                                const customItem = { label: query.trim(), value: query.trim() }
-                                                handleSelect(customItem.value, customItem)
-                                            }}
-                                            className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm text-cc-primary transition-colors ${focusedIndex === displayed.length ? 'bg-cc-primary/10' : 'hover:bg-cc-primary/5'
-                                                }`}
-                                        >
-                                            <AddRounded size={16} />
-                                            <span>Create &ldquo;{query.trim()}&rdquo;</span>
-                                        </button>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                        {(renderExtraFooter || onCreateNew) && (
-                            <div
-                                className={`border-t border-cc-overlay/10 p-1.5 bg-cc-surface ${focusedIndex === totalCount - 1 ? 'bg-cc-overlay/10' : ''
-                                    }`}
-                                onMouseEnter={() => setFocusedIndex(totalCount - 1)}
-                            >
-                                {renderExtraFooter ? (
-                                    typeof renderExtraFooter === 'function' ? (
-                                        renderExtraFooter(handleClose)
-                                    ) : (
-                                        renderExtraFooter
-                                    )
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            handleClose()
-                                            onCreateNew?.()
-                                        }}
-                                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-cc-primary/15 px-3 py-2 text-xs font-bold text-cc-primary transition-colors hover:bg-cc-primary/25 cursor-pointer"
-                                    >
-                                        <AddRounded size={16} strokeWidth={2.5} />
-                                        {createNewText || 'Create New'}
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        )
-
-        return (
-            <div
-                ref={triggerRef}
-                {...filterDomProps(props)}
-                className={`relative ${className}`}
-                style={style}
-            >
-                {name && <input type="hidden" name={name} value={String(currentValue ?? '')} disabled={disabled} />}
-                <button
-                    type="button"
-                    disabled={disabled}
-                    onKeyDown={handleKeyDown}
-                    onClick={() => {
-                        if (disabled) return
-                        if (!open) {
-                            updatePosition()
-                        }
-                        setOpen((v) => !v)
-                    }}
-                    className={`flex ${sizeClass.split(' ')[0]} w-full items-center justify-between gap-2 rounded-xl border ${sizeClass.split(' ').slice(1).join(' ')} text-left font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open
-                        ? 'border-cc-primary/50 bg-cc-surface ring-4 ring-cc-primary/10'
-                        : 'border-cc-overlay/10 bg-cc-surface hover:border-cc-primary/30'
-                        } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
-                >
-                    <span className={selected ? 'truncate text-cc-text' : 'truncate text-cc-muted'}>
-                        {selected?.label ?? placeholder}
-                    </span>
-                    <div className="flex items-center gap-1 shrink-0">
-                        {loading && (
-                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-cc-primary border-r-transparent mr-1" />
-                        )}
-                        {cleanable && currentValue !== undefined && currentValue !== null && currentValue !== '' && (
-                            <span
-                                role="button"
-                                onClick={handleClear}
-                                className="flex h-6 w-6 items-center justify-center rounded-md text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text"
-                            >
-                                <CloseRounded style={{ fontSize: 17 }} />
-                            </span>
-                        )}
-                        <KeyboardArrowDownRounded
-                            size={20}
-                            strokeWidth={2}
-                            className={`shrink-0 text-cc-muted transition-transform duration-200 ${open ? 'rotate-180 text-cc-primary' : ''
-                                }`}
-                        />
-                    </div>
-                </button>
-                <ThemedPortal>{menuContent}</ThemedPortal>
-            </div>
-        )
-    }
-)
-export const DateRangePicker = ({
-    value: controlledValue,
-    defaultValue = [],
-    onChange,
-    placeholder = 'Select Date Range',
-    className = '',
-    style,
-    size = 'md',
-    name,
-    shortcuts,
-    disabledDate,
-    ...props
-}) => {
-    const isControlled = controlledValue !== undefined
-    const [innerValue, setInnerValue] = useState(defaultValue)
-    const activeValue = isControlled ? controlledValue : innerValue
-
-    const [open, setOpen] = useState(false)
-    const [start, setStart] = useState('')
-    const [end, setEnd] = useState('')
-    const triggerRef = useRef(null)
-    const menuRef = useRef(null)
-    const { coords, updatePosition } = useDropdownPosition(open, triggerRef, 330)
-
-    useEffect(() => {
-        if (Array.isArray(activeValue) && activeValue.length === 2) {
-            const a = new Date(activeValue[0])
-            const b = new Date(activeValue[1])
-            setStart(!isNaN(a) ? a.toISOString().slice(0, 10) : '')
-            setEnd(!isNaN(b) ? b.toISOString().slice(0, 10) : '')
-        } else if (!activeValue?.length) {
-            setStart('')
-            setEnd('')
-        }
-    }, [activeValue])
-
-    useEffect(() => {
-        const handler = (e) => {
+      useEffect(() => {
+         const handler = (e) => {
             if (
-                triggerRef.current &&
-                !triggerRef.current.contains(e.target) &&
-                menuRef.current &&
-                !menuRef.current.contains(e.target)
+               triggerRef.current &&
+               !triggerRef.current.contains(e.target) &&
+               menuRef.current &&
+               !menuRef.current.contains(e.target)
             ) {
-                setOpen(false)
+               handleClose();
             }
-        }
-        document.addEventListener('mousedown', handler)
-        return () => document.removeEventListener('mousedown', handler)
-    }, [])
+         };
+         document.addEventListener('mousedown', handler);
+         return () => document.removeEventListener('mousedown', handler);
+      }, [handleClose]);
 
-    const display =
-        start && end
-            ? `${new Date(`${start}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} — ${new Date(`${end}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`
-            : placeholder
+      const rawData = Array.isArray(data) ? data : [];
+      const selected = rawData.find(
+         (item) => String(item?.value) === String(currentValue),
+      );
 
-    const sizeClass = controlSizes[size] || controlSizes.md
+      const filtered = useMemo(() => {
+         if (!searchable || !query) return rawData;
+         const q = query.toLowerCase();
+         return rawData.filter((item) =>
+            String(item?.label ?? item?.value ?? '')
+               .toLowerCase()
+               .includes(q),
+         );
+      }, [rawData, query, searchable]);
 
-    const menuContent = (
-        <AnimatePresence>
+      const displayed = filtered;
+
+      const handleSearchChange = (e) => {
+         const val = e.target.value;
+         setQuery(val);
+         onSearch?.(val);
+      };
+
+      const handleSelect = (val, item) => {
+         if (!isControlled) setInnerValue(val);
+         onChange?.(val, item);
+         handleClose();
+      };
+
+      const handleClear = (e) => {
+         e.stopPropagation();
+         if (!isControlled) setInnerValue('');
+         onChange?.('', null);
+      };
+
+      const hasExactMatch = rawData.some(
+         (i) =>
+            String(i?.label || i?.value).toLowerCase() ===
+            query.trim().toLowerCase(),
+      );
+      const showCreatable = creatable && query.trim() !== '' && !hasExactMatch;
+
+      const extraCount =
+         (renderExtraFooter || onCreateNew ? 1 : 0) + (showCreatable ? 1 : 0);
+      const totalCount = displayed.length + extraCount;
+
+      useEffect(() => {
+         if (open) {
+            setFocusedIndex(displayed.length > 0 ? 0 : showCreatable ? 0 : -1);
+         }
+      }, [open, query, displayed.length, showCreatable]);
+
+      useEffect(() => {
+         if (open && focusedIndex >= 0 && listRef.current) {
+            const targetEl = listRef.current.children[focusedIndex];
+            if (targetEl && typeof targetEl.scrollIntoView === 'function') {
+               targetEl.scrollIntoView({ block: 'nearest' });
+            }
+         }
+      }, [focusedIndex, open]);
+
+      const handleKeyDown = (e) => {
+         if (e.ctrlKey || e.metaKey) {
+            if (open) handleClose();
+            return;
+         }
+         e.stopPropagation();
+         if (!open) {
+            if (
+               e.key === 'ArrowDown' ||
+               e.key === 'ArrowUp' ||
+               e.key === 'Enter'
+            ) {
+               e.preventDefault();
+               updatePosition();
+               setOpen(true);
+            }
+            return;
+         }
+
+         if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setFocusedIndex((prev) => (prev < totalCount - 1 ? prev + 1 : 0));
+         } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setFocusedIndex((prev) => (prev > 0 ? prev - 1 : totalCount - 1));
+         } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (focusedIndex >= 0 && focusedIndex < displayed.length) {
+               const item = displayed[focusedIndex];
+               handleSelect(item?.value, item);
+            } else if (showCreatable && focusedIndex === displayed.length) {
+               const customItem = { label: query.trim(), value: query.trim() };
+               handleSelect(customItem.value, customItem);
+            } else if (
+               focusedIndex === totalCount - 1 &&
+               (renderExtraFooter || onCreateNew)
+            ) {
+               handleClose();
+               if (onCreateNew) {
+                  onCreateNew();
+               } else if (typeof renderExtraFooter === 'function') {
+                  renderExtraFooter(handleClose);
+               }
+            }
+         } else if (e.key === 'Escape') {
+            e.preventDefault();
+            handleClose();
+         }
+      };
+
+      const sizeClass = getControlSizeClass(size);
+
+      const menuContent = (
+         <AnimatePresence>
             {open && (
-                <motion.div
-                    ref={menuRef}
-                    initial={{
-                        opacity: 0,
-                        y: coords.placement === 'top' ? 4 : -4
-                    }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{
-                        opacity: 0,
-                        y: coords.placement === 'top' ? 4 : -4
-                    }}
-                    transition={{ duration: 0.1, ease: 'easeOut' }}
-                    style={{
-                        position: 'fixed',
-                        top: coords.placement === 'top' ? undefined : coords.top,
-                        bottom: coords.placement === 'top' ? window.innerHeight - coords.top : undefined,
-                        left: coords.left,
-                        width: 330,
-                        zIndex: 999999
-                    }}
-                    className={`rounded-2xl p-4 ${panelClass}`}
-                >
-                    <div className="mb-4">
-                        <p className="text-sm font-semibold text-cc-text">Date Range</p>
-                        <p className="mt-1 text-xs text-cc-muted">Select the period you want to view</p>
-                    </div>
-
-                    {shortcuts && shortcuts.length > 0 && (
-                        <div className="flex items-center gap-1 overflow-x-auto pb-2 mb-3 border-b border-cc-overlay/10 customScrollbar">
-                            {shortcuts.map((sc, scIdx) => (
-                                <button
-                                    key={scIdx}
-                                    type="button"
-                                    onClick={() => {
-                                        const scVal = typeof sc.value === 'function' ? sc.value() : sc.value
-                                        if (Array.isArray(scVal) && scVal.length === 2) {
-                                            const s = new Date(scVal[0])
-                                            const e = new Date(scVal[1])
-                                            const sStr = !isNaN(s) ? s.toISOString().slice(0, 10) : ''
-                                            const eStr = !isNaN(e) ? e.toISOString().slice(0, 10) : ''
-                                            setStart(sStr)
-                                            setEnd(eStr)
-                                            if (!isControlled) setInnerValue([s, e])
-                                            onChange?.([s, e])
-                                            setOpen(false)
-                                        }
-                                    }}
-                                    className="shrink-0 rounded-lg bg-cc-overlay/5 px-2.5 py-1 text-[11px] font-medium text-cc-text hover:bg-cc-primary/15 hover:text-cc-primary transition-colors"
-                                >
-                                    {sc.label}
-                                </button>
-                            ))}
+               <motion.div
+                  ref={menuRef}
+                  initial={{
+                     opacity: 0,
+                     y: coords.placement === 'top' ? 4 : -4,
+                  }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{
+                     opacity: 0,
+                     y: coords.placement === 'top' ? 4 : -4,
+                  }}
+                  transition={{ duration: 0.1, ease: 'easeOut' }}
+                  style={{
+                     ...menuStyle,
+                     position: 'fixed',
+                     top: coords.placement === 'top' ? undefined : coords.top,
+                     bottom:
+                        coords.placement === 'top'
+                           ? window.innerHeight - coords.top
+                           : undefined,
+                     left: coords.left,
+                     width: coords.width,
+                     maxWidth: 'calc(100vw - 24px)',
+                     zIndex: menuStyle?.zIndex ?? 'var(--cc-z)',
+                  }}
+                  className={`overflow-hidden rounded-2xl ${panelClass}`}>
+                  {searchable && (
+                     <div className="border-b border-cc-overlay/10 p-2">
+                        <div className="flex items-center rounded-xl border border-cc-overlay/10 bg-cc-overlay/5 px-3">
+                           <SearchRoundedIcon
+                              size={17}
+                              strokeWidth={2}
+                              className="shrink-0 text-cc-muted"
+                           />
+                           <input
+                              autoFocus
+                              value={query}
+                              onChange={handleSearchChange}
+                              onKeyDown={handleKeyDown}
+                              placeholder="Search..."
+                              className="h-10 w-full bg-transparent px-2 text-sm text-cc-text outline-none placeholder:text-cc-subtle"
+                           />
+                           {loading && (
+                              <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-cc-primary border-r-transparent" />
+                           )}
                         </div>
-                    )}
+                     </div>
+                  )}
+                  <div
+                     ref={listRef}
+                     className="overflow-y-auto p-1.5 customScrollbar"
+                     style={{ maxHeight: menuMaxHeight }}>
+                     {displayed.length === 0 && !showCreatable ? (
+                        <div className="px-4 py-6 text-center text-sm text-cc-muted">
+                           No results found
+                        </div>
+                     ) : (
+                        <>
+                           {displayed.map((item, idx) => {
+                              const isSelected =
+                                 String(item?.value) === String(currentValue);
+                              const isFocused = idx === focusedIndex;
+                              const labelText = item?.label ?? item?.value;
+                              const isGroupHeader =
+                                 groupBy &&
+                                 (idx === 0 ||
+                                    item[groupBy] !==
+                                       displayed[idx - 1][groupBy]);
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <label className="text-[11px] font-semibold uppercase tracking-wider text-cc-muted">
-                            From
-                            <input
-                                type="date"
-                                value={start}
-                                onChange={(e) => setStart(e.target.value)}
-                                className="mt-1.5 h-11 w-full rounded-xl border border-cc-overlay/10 bg-cc-overlay/5 px-3 text-sm text-cc-text outline-none"
-                            />
-                        </label>
-                        <label className="text-[11px] font-semibold uppercase tracking-wider text-cc-muted">
-                            To
-                            <input
-                                type="date"
-                                value={end}
-                                min={start}
-                                onChange={(e) => setEnd(e.target.value)}
-                                className="mt-1.5 h-11 w-full rounded-xl border border-cc-overlay/10 bg-cc-overlay/5 px-3 text-sm text-cc-text outline-none"
-                            />
-                        </label>
-                    </div>
-                    <div className="mt-4 flex justify-between border-t border-cc-overlay/10 pt-3">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setStart('')
-                                setEnd('')
-                                if (!isControlled) setInnerValue([])
-                                onChange?.([])
-                                setOpen(false)
-                            }}
-                            className="rounded-xl px-3 py-2 text-xs text-cc-muted hover:bg-cc-overlay/5 hover:text-cc-text"
-                        >
-                            Clear
-                        </button>
-                        <button
-                            type="button"
-                            disabled={!start || !end}
-                            onClick={() => {
-                                const s = new Date(`${start}T00:00:00`)
-                                const e = new Date(`${end}T23:59:59.999`)
-                                if (!isControlled) setInnerValue([s, e])
-                                onChange?.([s, e])
-                                setOpen(false)
-                            }}
-                            className="rounded-xl bg-cc-primary px-4 py-2 text-xs font-bold text-cc-on-primary hover:bg-cc-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                            Apply Range
-                        </button>
-                    </div>
-                </motion.div>
+                              return (
+                                 <React.Fragment
+                                    key={String(item?.value ?? idx)}>
+                                    {isGroupHeader && item[groupBy] && (
+                                       <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-cc-muted select-none">
+                                          {item[groupBy]}
+                                       </div>
+                                    )}
+                                    <button
+                                       type="button"
+                                       onMouseEnter={() => setFocusedIndex(idx)}
+                                       onClick={() =>
+                                          handleSelect(item?.value, item)
+                                       }
+                                       className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${
+                                          isSelected
+                                             ? 'bg-cc-primary/10 text-cc-primary font-semibold'
+                                             : isFocused
+                                               ? 'bg-cc-overlay/10 text-cc-text'
+                                               : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
+                                       }`}>
+                                       {renderMenuItem ? (
+                                          renderMenuItem(labelText, item)
+                                       ) : (
+                                          <span className="truncate">
+                                             {labelText}
+                                          </span>
+                                       )}
+                                       {isSelected && !renderMenuItem && (
+                                          <span>✓</span>
+                                       )}
+                                    </button>
+                                 </React.Fragment>
+                              );
+                           })}
+
+                           {showCreatable && (
+                              <button
+                                 type="button"
+                                 onMouseEnter={() =>
+                                    setFocusedIndex(displayed.length)
+                                 }
+                                 onClick={() => {
+                                    const customItem = {
+                                       label: query.trim(),
+                                       value: query.trim(),
+                                    };
+                                    handleSelect(customItem.value, customItem);
+                                 }}
+                                 className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm text-cc-primary transition-colors ${
+                                    focusedIndex === displayed.length
+                                       ? 'bg-cc-primary/10'
+                                       : 'hover:bg-cc-primary/5'
+                                 }`}>
+                                 <AddRounded size={16} />
+                                 <span>
+                                    Create &ldquo;{query.trim()}&rdquo;
+                                 </span>
+                              </button>
+                           )}
+                        </>
+                     )}
+                  </div>
+                  {(renderExtraFooter || onCreateNew) && (
+                     <div
+                        className={`border-t border-cc-overlay/10 p-1.5 bg-cc-surface ${
+                           focusedIndex === totalCount - 1
+                              ? 'bg-cc-overlay/10'
+                              : ''
+                        }`}
+                        onMouseEnter={() => setFocusedIndex(totalCount - 1)}>
+                        {renderExtraFooter ? (
+                           typeof renderExtraFooter === 'function' ? (
+                              renderExtraFooter(handleClose)
+                           ) : (
+                              renderExtraFooter
+                           )
+                        ) : (
+                           <button
+                              type="button"
+                              onClick={(e) => {
+                                 e.stopPropagation();
+                                 handleClose();
+                                 onCreateNew?.();
+                              }}
+                              className="flex w-full items-center justify-center gap-2 rounded-xl bg-cc-primary/15 px-3 py-2 text-xs font-bold text-cc-primary transition-colors hover:bg-cc-primary/25 cursor-pointer">
+                              <AddRounded size={16} strokeWidth={2.5} />
+                              {createNewText || 'Create New'}
+                           </button>
+                        )}
+                     </div>
+                  )}
+               </motion.div>
             )}
-        </AnimatePresence>
-    )
+         </AnimatePresence>
+      );
 
-    return (
-        <div
+      return (
+         <div
+            ref={triggerRef}
+            {...filterDomProps(props)}
+            className={`relative ${className}`}
+            style={style}>
+            {name && (
+               <input
+                  type="hidden"
+                  name={name}
+                  value={String(currentValue ?? '')}
+                  disabled={disabled}
+               />
+            )}
+            <button
+               type="button"
+               disabled={disabled}
+               onKeyDown={handleKeyDown}
+               onClick={() => {
+                  if (disabled) return;
+                  if (!open) {
+                     updatePosition();
+                  }
+                  setOpen((v) => !v);
+               }}
+               className={`flex ${sizeClass.split(' ')[0]} w-full items-center justify-between gap-2 rounded-xl border ${sizeClass.split(' ').slice(1).join(' ')} text-left font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${
+                  open
+                     ? 'border-cc-primary/50 bg-cc-surface ring-4 ring-cc-primary/10'
+                     : 'border-cc-overlay/10 bg-cc-surface hover:border-cc-primary/30'
+               } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}>
+               <span
+                  className={
+                     selected
+                        ? 'truncate text-cc-text'
+                        : 'truncate text-cc-muted'
+                  }>
+                  {selected?.label ?? placeholder}
+               </span>
+               <div className="flex items-center gap-1 shrink-0">
+                  {loading && (
+                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-cc-primary border-r-transparent mr-1" />
+                  )}
+                  {cleanable &&
+                     currentValue !== undefined &&
+                     currentValue !== null &&
+                     currentValue !== '' && (
+                        <span
+                           role="button"
+                           onClick={handleClear}
+                           className="flex h-6 w-6 items-center justify-center rounded-md text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text">
+                           <CloseRounded style={{ fontSize: 17 }} />
+                        </span>
+                     )}
+                  <KeyboardArrowDownRounded
+                     size={20}
+                     strokeWidth={2}
+                     className={`shrink-0 text-cc-muted transition-transform duration-200 ${
+                        open ? 'rotate-180 text-cc-primary' : ''
+                     }`}
+                  />
+               </div>
+            </button>
+            <ThemedPortal>{menuContent}</ThemedPortal>
+         </div>
+      );
+   },
+);
+export const DateRangePicker = ({
+   value: controlledValue,
+   defaultValue = [],
+   onChange,
+   placeholder = 'Select Date Range',
+   className = '',
+   style,
+   size = 'md',
+   name,
+   shortcuts,
+   disabledDate,
+   ...props
+}) => {
+   const isControlled = controlledValue !== undefined;
+   const [innerValue, setInnerValue] = useState(defaultValue);
+   const activeValue = isControlled ? controlledValue : innerValue;
+
+   const [open, setOpen] = useState(false);
+   const [start, setStart] = useState('');
+   const [end, setEnd] = useState('');
+   const triggerRef = useRef(null);
+   const menuRef = useRef(null);
+   const { coords, updatePosition } = useDropdownPosition(
+      open,
+      triggerRef,
+      330,
+   );
+
+   useEffect(() => {
+      if (Array.isArray(activeValue) && activeValue.length === 2) {
+         const a = new Date(activeValue[0]);
+         const b = new Date(activeValue[1]);
+         setStart(!isNaN(a) ? a.toISOString().slice(0, 10) : '');
+         setEnd(!isNaN(b) ? b.toISOString().slice(0, 10) : '');
+      } else if (!activeValue?.length) {
+         setStart('');
+         setEnd('');
+      }
+   }, [activeValue]);
+
+   useEffect(() => {
+      const handler = (e) => {
+         if (
+            triggerRef.current &&
+            !triggerRef.current.contains(e.target) &&
+            menuRef.current &&
+            !menuRef.current.contains(e.target)
+         ) {
+            setOpen(false);
+         }
+      };
+      document.addEventListener('mousedown', handler);
+      return () => document.removeEventListener('mousedown', handler);
+   }, []);
+
+   const display =
+      start && end
+         ? `${new Date(`${start}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} — ${new Date(`${end}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`
+         : placeholder;
+
+   const sizeClass = getControlSizeClass(size);
+
+   const menuContent = (
+      <AnimatePresence>
+         {open && (
+            <motion.div
+               ref={menuRef}
+               initial={{
+                  opacity: 0,
+                  y: coords.placement === 'top' ? 4 : -4,
+               }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{
+                  opacity: 0,
+                  y: coords.placement === 'top' ? 4 : -4,
+               }}
+               transition={{ duration: 0.1, ease: 'easeOut' }}
+               style={{
+                  position: 'fixed',
+                  top: coords.placement === 'top' ? undefined : coords.top,
+                  bottom:
+                     coords.placement === 'top'
+                        ? window.innerHeight - coords.top
+                        : undefined,
+                  left: coords.left,
+                  width: 330,
+                  zIndex: 999999,
+               }}
+               className={`rounded-2xl p-4 ${panelClass}`}>
+               <div className="mb-4">
+                  <p className="text-sm font-semibold text-cc-text">
+                     Date Range
+                  </p>
+                  <p className="mt-1 text-xs text-cc-muted">
+                     Select the period you want to view
+                  </p>
+               </div>
+
+               {shortcuts && shortcuts.length > 0 && (
+                  <div className="flex items-center gap-1 overflow-x-auto pb-2 mb-3 border-b border-cc-overlay/10 customScrollbar">
+                     {shortcuts.map((sc, scIdx) => (
+                        <button
+                           key={scIdx}
+                           type="button"
+                           onClick={() => {
+                              const scVal =
+                                 typeof sc.value === 'function'
+                                    ? sc.value()
+                                    : sc.value;
+                              if (Array.isArray(scVal) && scVal.length === 2) {
+                                 const s = new Date(scVal[0]);
+                                 const e = new Date(scVal[1]);
+                                 const sStr = !isNaN(s)
+                                    ? s.toISOString().slice(0, 10)
+                                    : '';
+                                 const eStr = !isNaN(e)
+                                    ? e.toISOString().slice(0, 10)
+                                    : '';
+                                 setStart(sStr);
+                                 setEnd(eStr);
+                                 if (!isControlled) setInnerValue([s, e]);
+                                 onChange?.([s, e]);
+                                 setOpen(false);
+                              }
+                           }}
+                           className="shrink-0 rounded-lg bg-cc-overlay/5 px-2.5 py-1 text-[11px] font-medium text-cc-text hover:bg-cc-primary/15 hover:text-cc-primary transition-colors">
+                           {sc.label}
+                        </button>
+                     ))}
+                  </div>
+               )}
+
+               <div className="grid grid-cols-2 gap-3">
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-cc-muted">
+                     From
+                     <input
+                        type="date"
+                        value={start}
+                        onChange={(e) => setStart(e.target.value)}
+                        className="mt-1.5 h-11 w-full rounded-xl border border-cc-overlay/10 bg-cc-overlay/5 px-3 text-sm text-cc-text outline-none"
+                     />
+                  </label>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-cc-muted">
+                     To
+                     <input
+                        type="date"
+                        value={end}
+                        min={start}
+                        onChange={(e) => setEnd(e.target.value)}
+                        className="mt-1.5 h-11 w-full rounded-xl border border-cc-overlay/10 bg-cc-overlay/5 px-3 text-sm text-cc-text outline-none"
+                     />
+                  </label>
+               </div>
+               <div className="mt-4 flex justify-between border-t border-cc-overlay/10 pt-3">
+                  <button
+                     type="button"
+                     onClick={() => {
+                        setStart('');
+                        setEnd('');
+                        if (!isControlled) setInnerValue([]);
+                        onChange?.([]);
+                        setOpen(false);
+                     }}
+                     className="rounded-xl px-3 py-2 text-xs text-cc-muted hover:bg-cc-overlay/5 hover:text-cc-text">
+                     Clear
+                  </button>
+                  <button
+                     type="button"
+                     disabled={!start || !end}
+                     onClick={() => {
+                        const s = new Date(`${start}T00:00:00`);
+                        const e = new Date(`${end}T23:59:59.999`);
+                        if (!isControlled) setInnerValue([s, e]);
+                        onChange?.([s, e]);
+                        setOpen(false);
+                     }}
+                     className="rounded-xl bg-cc-primary px-4 py-2 text-xs font-bold text-cc-on-primary hover:bg-cc-primary-hover disabled:cursor-not-allowed disabled:opacity-40">
+                     Apply Range
+                  </button>
+               </div>
+            </motion.div>
+         )}
+      </AnimatePresence>
+   );
+
+   return (
+      <div
+         ref={triggerRef}
+         className={`relative ${className}`}
+         style={style}
+         {...filterDomProps(props)}>
+         {name && (
+            <>
+               <input type="hidden" name={`${name}[0]`} value={start} />
+               <input type="hidden" name={`${name}[1]`} value={end} />
+            </>
+         )}
+         <button
+            type="button"
+            onClick={() => {
+               if (!open) updatePosition();
+               setOpen((v) => !v);
+            }}
+            className={`flex ${sizeClass.split(' ')[0]} w-full min-w-[220px] items-center justify-between gap-3 rounded-xl border border-cc-overlay/10 bg-cc-surface ${sizeClass.split(' ').slice(1).join(' ')} font-normal transition-all hover:border-cc-primary/30 focus:border-cc-primary/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15`}>
+            <span className="flex min-w-0 items-center gap-3">
+               <span
+                  className={
+                     start && end
+                        ? 'truncate text-cc-text'
+                        : 'truncate text-cc-muted'
+                  }>
+                  {display}
+               </span>
+            </span>
+            <KeyboardArrowDownRounded
+               size={20}
+               strokeWidth={2}
+               className={`text-cc-muted transition-transform ${open ? 'rotate-180 text-cc-primary' : ''}`}
+            />
+         </button>
+         <ThemedPortal>{menuContent}</ThemedPortal>
+      </div>
+   );
+};
+
+export const DatePicker = forwardRef(
+   (
+      {
+         value: controlledValue,
+         defaultValue,
+         onChange,
+         placeholder = 'Select Date',
+         className = '',
+         style,
+         cleanable = true,
+         disabled = false,
+         format = 'yyyy-MM-dd',
+         size = 'md',
+         name,
+         shortcuts,
+         disabledDate,
+         menuStyle,
+         ...props
+      },
+      outerRef,
+   ) => {
+      const isControlled = controlledValue !== undefined;
+      const [innerValue, setInnerValue] = useState(defaultValue);
+      const activeValue = isControlled ? controlledValue : innerValue;
+
+      const [open, setOpen] = useState(false);
+      const triggerRef = useRef(null);
+      const menuRef = useRef(null);
+
+      const parsedSelectedDate = useMemo(() => {
+         if (!activeValue) return null;
+         if (activeValue instanceof Date && !isNaN(activeValue))
+            return activeValue;
+         if (typeof activeValue === 'string') {
+            const dateOnly = activeValue.split('T')[0];
+            const parts = dateOnly.split('-');
+            if (parts.length === 3) {
+               const y = parseInt(parts[0], 10);
+               const m = parseInt(parts[1], 10) - 1;
+               const d = parseInt(parts[2], 10);
+               const parsed = new Date(y, m, d);
+               if (!isNaN(parsed)) return parsed;
+            }
+            const d = new Date(activeValue);
+            if (!isNaN(d)) return d;
+         }
+         return null;
+      }, [activeValue]);
+
+      const [viewDate, setViewDate] = useState(() => {
+         return parsedSelectedDate || new Date();
+      });
+
+      useEffect(() => {
+         if (parsedSelectedDate) {
+            setViewDate(parsedSelectedDate);
+         }
+      }, [parsedSelectedDate]);
+
+      const handleClose = useCallback(() => {
+         setOpen(false);
+      }, []);
+
+      useImperativeHandle(outerRef, () => ({
+         close: handleClose,
+         open: () => setOpen(true),
+      }));
+
+      const { coords, updatePosition } = useDropdownPosition(
+         open,
+         triggerRef,
+         290,
+      );
+
+      useEffect(() => {
+         const handler = (e) => {
+            if (
+               triggerRef.current &&
+               !triggerRef.current.contains(e.target) &&
+               menuRef.current &&
+               !menuRef.current.contains(e.target)
+            ) {
+               handleClose();
+            }
+         };
+         document.addEventListener('mousedown', handler);
+         return () => document.removeEventListener('mousedown', handler);
+      }, [handleClose]);
+
+      const formatDisplayDate = (d) => {
+         if (!d || isNaN(d)) return placeholder;
+         return d.toLocaleDateString('en-US', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+         });
+      };
+
+      const formatValueStr = (d) => {
+         if (!d || isNaN(d)) return '';
+         const year = d.getFullYear();
+         const month = String(d.getMonth() + 1).padStart(2, '0');
+         const day = String(d.getDate()).padStart(2, '0');
+         return `${year}-${month}-${day}`;
+      };
+
+      const handleSelectDay = (dayDate) => {
+         if (disabledDate && disabledDate(dayDate)) return;
+         const formatted = formatValueStr(dayDate);
+         if (!isControlled) setInnerValue(formatted);
+         onChange?.(formatted, dayDate);
+         handleClose();
+      };
+
+      const prevMonth = () => {
+         setViewDate(
+            (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
+         );
+      };
+
+      const nextMonth = () => {
+         setViewDate(
+            (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
+         );
+      };
+
+      const year = viewDate.getFullYear();
+      const month = viewDate.getMonth();
+
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const firstDayOfWeek = new Date(year, month, 1).getDay();
+      const startOffset = (firstDayOfWeek + 6) % 7;
+      const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+      const calendarCells = [];
+
+      for (let i = startOffset - 1; i >= 0; i--) {
+         const dayNum = daysInPrevMonth - i;
+         calendarCells.push({
+            date: new Date(year, month - 1, dayNum),
+            dayNum,
+            isCurrentMonth: false,
+         });
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+         calendarCells.push({
+            date: new Date(year, month, d),
+            dayNum: d,
+            isCurrentMonth: true,
+         });
+      }
+
+      const remaining = 42 - calendarCells.length;
+      for (let d = 1; d <= remaining; d++) {
+         calendarCells.push({
+            date: new Date(year, month + 1, d),
+            dayNum: d,
+            isCurrentMonth: false,
+         });
+      }
+
+      const todayStr = formatValueStr(new Date());
+      const selectedStr = formatValueStr(parsedSelectedDate);
+
+      const monthName = viewDate.toLocaleDateString('en-US', {
+         month: 'long',
+         year: 'numeric',
+      });
+
+      const sizeClass = getControlSizeClass(size);
+
+      const menuContent = (
+         <AnimatePresence>
+            {open && (
+               <motion.div
+                  ref={menuRef}
+                  initial={{
+                     opacity: 0,
+                     y: coords.placement === 'top' ? 4 : -4,
+                  }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{
+                     opacity: 0,
+                     y: coords.placement === 'top' ? 4 : -4,
+                  }}
+                  transition={{ duration: 0.1, ease: 'easeOut' }}
+                  style={{
+                     ...menuStyle,
+                     position: 'fixed',
+                     top: coords.placement === 'top' ? undefined : coords.top,
+                     bottom:
+                        coords.placement === 'top'
+                           ? window.innerHeight - coords.top
+                           : undefined,
+                     left: coords.left,
+                     width: 290,
+                     zIndex: menuStyle?.zIndex ?? 'var(--cc-z)',
+                  }}
+                  className={`rounded-2xl p-3.5 ${panelClass}`}>
+                  <div className="flex items-center justify-between pb-3 border-b border-cc-overlay/10">
+                     <button
+                        type="button"
+                        onClick={prevMonth}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text transition-colors">
+                        <ChevronLeftOutlinedIcon size={18} />
+                     </button>
+                     <span className="text-sm font-semibold text-cc-text">
+                        {monthName}
+                     </span>
+                     <button
+                        type="button"
+                        onClick={nextMonth}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text transition-colors">
+                        <ChevronRightOutlinedIcon size={18} />
+                     </button>
+                  </div>
+
+                  {shortcuts && shortcuts.length > 0 && (
+                     <div className="flex items-center gap-1 overflow-x-auto py-2 border-b border-cc-overlay/10 customScrollbar">
+                        {shortcuts.map((sc, scIdx) => (
+                           <button
+                              key={scIdx}
+                              type="button"
+                              onClick={() => {
+                                 const scDate =
+                                    typeof sc.value === 'function'
+                                       ? sc.value()
+                                       : sc.value;
+                                 if (scDate) {
+                                    const d =
+                                       scDate instanceof Date
+                                          ? scDate
+                                          : new Date(scDate);
+                                    if (!isNaN(d)) {
+                                       setViewDate(d);
+                                       handleSelectDay(d);
+                                    }
+                                 }
+                              }}
+                              className="shrink-0 rounded-lg bg-cc-overlay/5 px-2 py-1 text-[11px] font-medium text-cc-text hover:bg-cc-primary/15 hover:text-cc-primary transition-colors">
+                              {sc.label}
+                           </button>
+                        ))}
+                     </div>
+                  )}
+
+                  <div className="grid grid-cols-7 gap-1 pt-3 pb-1 text-center text-[11px] font-bold text-cc-muted uppercase tracking-wider">
+                     <span>Mo</span>
+                     <span>Tu</span>
+                     <span>We</span>
+                     <span>Th</span>
+                     <span>Fr</span>
+                     <span>Sa</span>
+                     <span>Su</span>
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1">
+                     {calendarCells.map((cell, idx) => {
+                        const cellStr = formatValueStr(cell.date);
+                        const isSelected =
+                           selectedStr && cellStr === selectedStr;
+                        const isToday = cellStr === todayStr;
+                        const isCellDisabled = disabledDate
+                           ? disabledDate(cell.date)
+                           : false;
+
+                        return (
+                           <button
+                              key={idx}
+                              type="button"
+                              disabled={isCellDisabled}
+                              onClick={() => handleSelectDay(cell.date)}
+                              className={`flex h-8 w-8 items-center justify-center rounded-xl text-xs transition-all font-medium ${
+                                 isCellDisabled
+                                    ? 'opacity-30 cursor-not-allowed text-cc-muted'
+                                    : isSelected
+                                      ? 'bg-cc-primary text-cc-on-primary font-bold shadow-md shadow-cc-primary/20'
+                                      : cell.isCurrentMonth
+                                        ? isToday
+                                           ? 'border border-cc-primary/50 text-cc-primary font-semibold bg-cc-primary/10'
+                                           : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
+                                        : 'text-cc-subtle hover:bg-cc-overlay/5'
+                              }`}>
+                              {cell.dayNum}
+                           </button>
+                        );
+                     })}
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between border-t border-cc-overlay/10 pt-2.5">
+                     <button
+                        type="button"
+                        onClick={() => {
+                           const today = new Date();
+                           setViewDate(today);
+                           handleSelectDay(today);
+                        }}
+                        className="rounded-lg px-2.5 py-1 text-xs font-semibold text-cc-primary hover:bg-cc-primary/10 transition-colors">
+                        Today
+                     </button>
+                     {cleanable && parsedSelectedDate && (
+                        <button
+                           type="button"
+                           onClick={() => {
+                              if (!isControlled) setInnerValue('');
+                              onChange?.('', null);
+                              handleClose();
+                           }}
+                           className="rounded-lg px-2.5 py-1 text-xs text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text transition-colors">
+                           Clear
+                        </button>
+                     )}
+                  </div>
+               </motion.div>
+            )}
+         </AnimatePresence>
+      );
+
+      return (
+         <div
             ref={triggerRef}
             className={`relative ${className}`}
             style={style}
-            {...filterDomProps(props)}
-        >
+            {...filterDomProps(props)}>
             {name && (
-                <>
-                    <input type="hidden" name={`${name}[0]`} value={start} />
-                    <input type="hidden" name={`${name}[1]`} value={end} />
-                </>
+               <input
+                  type="hidden"
+                  name={name}
+                  value={formatValueStr(parsedSelectedDate)}
+                  disabled={disabled}
+               />
             )}
             <button
-                type="button"
-                onClick={() => {
-                    if (!open) updatePosition()
-                    setOpen((v) => !v)
-                }}
-                className={`flex ${sizeClass.split(' ')[0]} w-full min-w-[220px] items-center justify-between gap-3 rounded-xl border border-cc-overlay/10 bg-cc-surface ${sizeClass.split(' ').slice(1).join(' ')} font-normal transition-all hover:border-cc-primary/30 focus:border-cc-primary/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15`}
-            >
-                <span className="flex min-w-0 items-center gap-3">
-                    <span className={start && end ? 'truncate text-cc-text' : 'truncate text-cc-muted'}>
-                        {display}
-                    </span>
-                </span>
-                <KeyboardArrowDownRounded
-                    size={20}
-                    strokeWidth={2}
-                    className={`text-cc-muted transition-transform ${open ? 'rotate-180 text-cc-primary' : ''}`}
-                />
+               type="button"
+               disabled={disabled}
+               onClick={() => {
+                  if (disabled) return;
+                  if (!open) updatePosition();
+                  setOpen((v) => !v);
+               }}
+               className={`flex ${sizeClass.split(' ')[0]} w-full items-center justify-between gap-2 rounded-xl border ${sizeClass.split(' ').slice(1).join(' ')} text-left font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${
+                  open
+                     ? 'border-cc-primary/50 bg-cc-surface ring-4 ring-cc-primary/10'
+                     : 'border-cc-overlay/10 bg-cc-surface hover:border-cc-primary/30'
+               } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}>
+               <span className="flex items-center gap-2.5 min-w-0">
+                  <CalendarTodayRounded
+                     style={{ fontSize: 15 }}
+                     strokeWidth={2}
+                     className={open ? 'text-cc-primary' : 'text-cc-muted'}
+                  />
+                  <span
+                     className={
+                        parsedSelectedDate
+                           ? 'truncate text-cc-text'
+                           : 'truncate text-cc-muted'
+                     }>
+                     {formatDisplayDate(parsedSelectedDate)}
+                  </span>
+               </span>
+               <div className="flex items-center gap-1 shrink-0">
+                  {cleanable && parsedSelectedDate && (
+                     <span
+                        role="button"
+                        onClick={(e) => {
+                           e.stopPropagation();
+                           if (!isControlled) setInnerValue('');
+                           onChange?.('', null);
+                        }}
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text">
+                        <CloseRounded className="w-4 h-4" />
+                     </span>
+                  )}
+                  <KeyboardArrowDownRounded
+                     size={20}
+                     strokeWidth={2}
+                     className={`text-cc-muted transition-transform duration-200 ${
+                        open ? 'rotate-180 text-cc-primary' : ''
+                     }`}
+                  />
+               </div>
             </button>
             <ThemedPortal>{menuContent}</ThemedPortal>
-        </div>
-    )
-}
-
-export const DatePicker = forwardRef(
-    (
-        {
-            value: controlledValue,
-            defaultValue,
-            onChange,
-            placeholder = 'Select Date',
-            className = '',
-            style,
-            cleanable = true,
-            disabled = false,
-            format = 'yyyy-MM-dd',
-            size = 'md',
-            name,
-            shortcuts,
-            disabledDate,
-            menuStyle,
-            ...props
-        },
-        outerRef
-    ) => {
-        const isControlled = controlledValue !== undefined
-        const [innerValue, setInnerValue] = useState(defaultValue)
-        const activeValue = isControlled ? controlledValue : innerValue
-
-        const [open, setOpen] = useState(false)
-        const triggerRef = useRef(null)
-        const menuRef = useRef(null)
-
-        const parsedSelectedDate = useMemo(() => {
-            if (!activeValue) return null
-            if (activeValue instanceof Date && !isNaN(activeValue)) return activeValue
-            if (typeof activeValue === 'string') {
-                const dateOnly = activeValue.split('T')[0]
-                const parts = dateOnly.split('-')
-                if (parts.length === 3) {
-                    const y = parseInt(parts[0], 10)
-                    const m = parseInt(parts[1], 10) - 1
-                    const d = parseInt(parts[2], 10)
-                    const parsed = new Date(y, m, d)
-                    if (!isNaN(parsed)) return parsed
-                }
-                const d = new Date(activeValue)
-                if (!isNaN(d)) return d
-            }
-            return null
-        }, [activeValue])
-
-        const [viewDate, setViewDate] = useState(() => {
-            return parsedSelectedDate || new Date()
-        })
-
-        useEffect(() => {
-            if (parsedSelectedDate) {
-                setViewDate(parsedSelectedDate)
-            }
-        }, [parsedSelectedDate])
-
-        const handleClose = useCallback(() => {
-            setOpen(false)
-        }, [])
-
-        useImperativeHandle(outerRef, () => ({
-            close: handleClose,
-            open: () => setOpen(true)
-        }))
-
-        const { coords, updatePosition } = useDropdownPosition(open, triggerRef, 290)
-
-        useEffect(() => {
-            const handler = (e) => {
-                if (
-                    triggerRef.current &&
-                    !triggerRef.current.contains(e.target) &&
-                    menuRef.current &&
-                    !menuRef.current.contains(e.target)
-                ) {
-                    handleClose()
-                }
-            }
-            document.addEventListener('mousedown', handler)
-            return () => document.removeEventListener('mousedown', handler)
-        }, [handleClose])
-
-        const formatDisplayDate = (d) => {
-            if (!d || isNaN(d)) return placeholder
-            return d.toLocaleDateString('en-US', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            })
-        }
-
-        const formatValueStr = (d) => {
-            if (!d || isNaN(d)) return ''
-            const year = d.getFullYear()
-            const month = String(d.getMonth() + 1).padStart(2, '0')
-            const day = String(d.getDate()).padStart(2, '0')
-            return `${year}-${month}-${day}`
-        }
-
-        const handleSelectDay = (dayDate) => {
-            if (disabledDate && disabledDate(dayDate)) return
-            const formatted = formatValueStr(dayDate)
-            if (!isControlled) setInnerValue(formatted)
-            onChange?.(formatted, dayDate)
-            handleClose()
-        }
-
-        const prevMonth = () => {
-            setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
-        }
-
-        const nextMonth = () => {
-            setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
-        }
-
-        const year = viewDate.getFullYear()
-        const month = viewDate.getMonth()
-
-        const daysInMonth = new Date(year, month + 1, 0).getDate()
-        const firstDayOfWeek = new Date(year, month, 1).getDay()
-        const startOffset = (firstDayOfWeek + 6) % 7
-        const daysInPrevMonth = new Date(year, month, 0).getDate()
-
-        const calendarCells = []
-
-        for (let i = startOffset - 1; i >= 0; i--) {
-            const dayNum = daysInPrevMonth - i
-            calendarCells.push({
-                date: new Date(year, month - 1, dayNum),
-                dayNum,
-                isCurrentMonth: false
-            })
-        }
-
-        for (let d = 1; d <= daysInMonth; d++) {
-            calendarCells.push({
-                date: new Date(year, month, d),
-                dayNum: d,
-                isCurrentMonth: true
-            })
-        }
-
-        const remaining = 42 - calendarCells.length
-        for (let d = 1; d <= remaining; d++) {
-            calendarCells.push({
-                date: new Date(year, month + 1, d),
-                dayNum: d,
-                isCurrentMonth: false
-            })
-        }
-
-        const todayStr = formatValueStr(new Date())
-        const selectedStr = formatValueStr(parsedSelectedDate)
-
-        const monthName = viewDate.toLocaleDateString('en-US', {
-            month: 'long',
-            year: 'numeric'
-        })
-
-        const sizeClass = controlSizes[size] || controlSizes.md
-
-        const menuContent = (
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        ref={menuRef}
-                        initial={{
-                            opacity: 0,
-                            y: coords.placement === 'top' ? 4 : -4
-                        }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{
-                            opacity: 0,
-                            y: coords.placement === 'top' ? 4 : -4
-                        }}
-                        transition={{ duration: 0.1, ease: 'easeOut' }}
-                        style={{
-                            ...menuStyle,
-                            position: 'fixed',
-                            top: coords.placement === 'top' ? undefined : coords.top,
-                            bottom: coords.placement === 'top' ? window.innerHeight - coords.top : undefined,
-                            left: coords.left,
-                            width: 290,
-                            zIndex: menuStyle?.zIndex ?? 'var(--cc-z)'
-                        }}
-                        className={`rounded-2xl p-3.5 ${panelClass}`}
-                    >
-                        <div className="flex items-center justify-between pb-3 border-b border-cc-overlay/10">
-                            <button
-                                type="button"
-                                onClick={prevMonth}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text transition-colors"
-                            >
-                                <ChevronLeftOutlinedIcon size={18} />
-                            </button>
-                            <span className="text-sm font-semibold text-cc-text">{monthName}</span>
-                            <button
-                                type="button"
-                                onClick={nextMonth}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text transition-colors"
-                            >
-                                <ChevronRightOutlinedIcon size={18} />
-                            </button>
-                        </div>
-
-                        {shortcuts && shortcuts.length > 0 && (
-                            <div className="flex items-center gap-1 overflow-x-auto py-2 border-b border-cc-overlay/10 customScrollbar">
-                                {shortcuts.map((sc, scIdx) => (
-                                    <button
-                                        key={scIdx}
-                                        type="button"
-                                        onClick={() => {
-                                            const scDate = typeof sc.value === 'function' ? sc.value() : sc.value
-                                            if (scDate) {
-                                                const d = scDate instanceof Date ? scDate : new Date(scDate)
-                                                if (!isNaN(d)) {
-                                                    setViewDate(d)
-                                                    handleSelectDay(d)
-                                                }
-                                            }
-                                        }}
-                                        className="shrink-0 rounded-lg bg-cc-overlay/5 px-2 py-1 text-[11px] font-medium text-cc-text hover:bg-cc-primary/15 hover:text-cc-primary transition-colors"
-                                    >
-                                        {sc.label}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        <div className="grid grid-cols-7 gap-1 pt-3 pb-1 text-center text-[11px] font-bold text-cc-muted uppercase tracking-wider">
-                            <span>Mo</span>
-                            <span>Tu</span>
-                            <span>We</span>
-                            <span>Th</span>
-                            <span>Fr</span>
-                            <span>Sa</span>
-                            <span>Su</span>
-                        </div>
-
-                        <div className="grid grid-cols-7 gap-1">
-                            {calendarCells.map((cell, idx) => {
-                                const cellStr = formatValueStr(cell.date)
-                                const isSelected = selectedStr && cellStr === selectedStr
-                                const isToday = cellStr === todayStr
-                                const isCellDisabled = disabledDate ? disabledDate(cell.date) : false
-
-                                return (
-                                    <button
-                                        key={idx}
-                                        type="button"
-                                        disabled={isCellDisabled}
-                                        onClick={() => handleSelectDay(cell.date)}
-                                        className={`flex h-8 w-8 items-center justify-center rounded-xl text-xs transition-all font-medium ${isCellDisabled
-                                            ? 'opacity-30 cursor-not-allowed text-cc-muted'
-                                            : isSelected
-                                                ? 'bg-cc-primary text-cc-on-primary font-bold shadow-md shadow-cc-primary/20'
-                                                : cell.isCurrentMonth
-                                                    ? isToday
-                                                        ? 'border border-cc-primary/50 text-cc-primary font-semibold bg-cc-primary/10'
-                                                        : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
-                                                    : 'text-cc-subtle hover:bg-cc-overlay/5'
-                                            }`}
-                                    >
-                                        {cell.dayNum}
-                                    </button>
-                                )
-                            })}
-                        </div>
-
-                        <div className="mt-3 flex items-center justify-between border-t border-cc-overlay/10 pt-2.5">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const today = new Date()
-                                    setViewDate(today)
-                                    handleSelectDay(today)
-                                }}
-                                className="rounded-lg px-2.5 py-1 text-xs font-semibold text-cc-primary hover:bg-cc-primary/10 transition-colors"
-                            >
-                                Today
-                            </button>
-                            {cleanable && parsedSelectedDate && (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        if (!isControlled) setInnerValue('')
-                                        onChange?.('', null)
-                                        handleClose()
-                                    }}
-                                    className="rounded-lg px-2.5 py-1 text-xs text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text transition-colors"
-                                >
-                                    Clear
-                                </button>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        )
-
-        return (
-            <div
-                ref={triggerRef}
-                className={`relative ${className}`}
-                style={style}
-                {...filterDomProps(props)}
-            >
-                {name && <input type="hidden" name={name} value={formatValueStr(parsedSelectedDate)} disabled={disabled} />}
-                <button
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => {
-                        if (disabled) return
-                        if (!open) updatePosition()
-                        setOpen((v) => !v)
-                    }}
-                    className={`flex ${sizeClass.split(' ')[0]} w-full items-center justify-between gap-2 rounded-xl border ${sizeClass.split(' ').slice(1).join(' ')} text-left font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open
-                        ? 'border-cc-primary/50 bg-cc-surface ring-4 ring-cc-primary/10'
-                        : 'border-cc-overlay/10 bg-cc-surface hover:border-cc-primary/30'
-                        } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
-                >
-                    <span className="flex items-center gap-2.5 min-w-0">
-                        <CalendarTodayRounded
-                            style={{ fontSize: 15 }}
-                            strokeWidth={2}
-                            className={open ? 'text-cc-primary' : 'text-cc-muted'}
-                        />
-                        <span
-                            className={parsedSelectedDate ? 'truncate text-cc-text' : 'truncate text-cc-muted'}
-                        >
-                            {formatDisplayDate(parsedSelectedDate)}
-                        </span>
-                    </span>
-                    <div className="flex items-center gap-1 shrink-0">
-                        {cleanable && parsedSelectedDate && (
-                            <span
-                                role="button"
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    if (!isControlled) setInnerValue('')
-                                    onChange?.('', null)
-                                }}
-                                className="flex h-6 w-6 items-center justify-center rounded-md text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text"
-                            >
-                                <CloseRounded className="w-4 h-4" />
-                            </span>
-                        )}
-                        <KeyboardArrowDownRounded
-                            size={20}
-                            strokeWidth={2}
-                            className={`text-cc-muted transition-transform duration-200 ${open ? 'rotate-180 text-cc-primary' : ''
-                                }`}
-                        />
-                    </div>
-                </button>
-                <ThemedPortal>{menuContent}</ThemedPortal>
-            </div>
-        )
-    }
-)
+         </div>
+      );
+   },
+);
 
 export const TimePicker = forwardRef(
-    (
-        {
-            value: controlledValue,
-            defaultValue = '',
-            onChange,
-            placeholder = 'Select Time',
-            className = '',
-            style,
-            cleanable = true,
-            disabled = false,
-            is12h = true,
-            size = 'md',
-            name,
-            menuStyle,
-            ...props
-        },
-        outerRef
-    ) => {
-        const isControlled = controlledValue !== undefined
-        const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue)
-        const value = isControlled ? (controlledValue || '') : uncontrolledValue
+   (
+      {
+         value: controlledValue,
+         defaultValue = '',
+         onChange,
+         placeholder = 'Select Time',
+         className = '',
+         style,
+         cleanable = true,
+         disabled = false,
+         is12h = true,
+         size = 'md',
+         name,
+         menuStyle,
+         ...props
+      },
+      outerRef,
+   ) => {
+      const isControlled = controlledValue !== undefined;
+      const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue);
+      const value = isControlled ? controlledValue || '' : uncontrolledValue;
 
-        const [open, setOpen] = useState(false)
-        const triggerRef = useRef(null)
-        const menuRef = useRef(null)
+      const [open, setOpen] = useState(false);
+      const triggerRef = useRef(null);
+      const menuRef = useRef(null);
 
-        const parsed = useMemo(() => {
-            if (!value)
-                return {
-                    hours12: 12,
-                    hours24: 12,
-                    minutes: 0,
-                    period: 'PM',
-                    isValid: false
-                }
-
-            let h24 = 12
-            let m = 0
-            let p = 'PM'
-
-            if (typeof value === 'string') {
-                const match = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i)
-                if (match) {
-                    let rawH = parseInt(match[1], 10)
-                    m = parseInt(match[2], 10)
-                    const rawP = match[3] ? match[3].toUpperCase() : null
-
-                    if (rawP) {
-                        p = rawP
-                        if (p === 'PM' && rawH < 12) h24 = rawH + 12
-                        else if (p === 'AM' && rawH === 12) h24 = 0
-                        else h24 = rawH
-                    } else {
-                        h24 = rawH
-                        p = h24 >= 12 ? 'PM' : 'AM'
-                    }
-                }
-            } else if (value instanceof Date && !isNaN(value)) {
-                h24 = value.getHours()
-                m = value.getMinutes()
-                p = h24 >= 12 ? 'PM' : 'AM'
-            }
-
-            let h12 = h24 % 12
-            if (h12 === 0) h12 = 12
-
+      const parsed = useMemo(() => {
+         if (!value)
             return {
-                hours12: h12,
-                hours24: h24,
-                minutes: m,
-                period: p,
-                isValid: true
+               hours12: 12,
+               hours24: 12,
+               minutes: 0,
+               period: 'PM',
+               isValid: false,
+            };
+
+         let h24 = 12;
+         let m = 0;
+         let p = 'PM';
+
+         if (typeof value === 'string') {
+            const match = value.match(
+               /^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i,
+            );
+            if (match) {
+               let rawH = parseInt(match[1], 10);
+               m = parseInt(match[2], 10);
+               const rawP = match[3] ? match[3].toUpperCase() : null;
+
+               if (rawP) {
+                  p = rawP;
+                  if (p === 'PM' && rawH < 12) h24 = rawH + 12;
+                  else if (p === 'AM' && rawH === 12) h24 = 0;
+                  else h24 = rawH;
+               } else {
+                  h24 = rawH;
+                  p = h24 >= 12 ? 'PM' : 'AM';
+               }
             }
-        }, [value])
+         } else if (value instanceof Date && !isNaN(value)) {
+            h24 = value.getHours();
+            m = value.getMinutes();
+            p = h24 >= 12 ? 'PM' : 'AM';
+         }
 
-        const [selectedH12, setSelectedH12] = useState(parsed.hours12)
-        const [selectedH24, setSelectedH24] = useState(parsed.hours24)
-        const [selectedM, setSelectedM] = useState(parsed.minutes)
-        const [selectedP, setSelectedP] = useState(parsed.period)
+         let h12 = h24 % 12;
+         if (h12 === 0) h12 = 12;
 
-        useEffect(() => {
-            if (parsed.isValid) {
-                setSelectedH12(parsed.hours12)
-                setSelectedH24(parsed.hours24)
-                setSelectedM(parsed.minutes)
-                setSelectedP(parsed.period)
+         return {
+            hours12: h12,
+            hours24: h24,
+            minutes: m,
+            period: p,
+            isValid: true,
+         };
+      }, [value]);
+
+      const [selectedH12, setSelectedH12] = useState(parsed.hours12);
+      const [selectedH24, setSelectedH24] = useState(parsed.hours24);
+      const [selectedM, setSelectedM] = useState(parsed.minutes);
+      const [selectedP, setSelectedP] = useState(parsed.period);
+
+      useEffect(() => {
+         if (parsed.isValid) {
+            setSelectedH12(parsed.hours12);
+            setSelectedH24(parsed.hours24);
+            setSelectedM(parsed.minutes);
+            setSelectedP(parsed.period);
+         }
+      }, [parsed]);
+
+      const handleClose = useCallback(() => {
+         setOpen(false);
+      }, []);
+
+      useImperativeHandle(outerRef, () => ({
+         close: handleClose,
+         open: () => setOpen(true),
+      }));
+
+      const { coords, updatePosition } = useDropdownPosition(
+         open,
+         triggerRef,
+         270,
+      );
+
+      useEffect(() => {
+         const handler = (e) => {
+            if (
+               triggerRef.current &&
+               !triggerRef.current.contains(e.target) &&
+               menuRef.current &&
+               !menuRef.current.contains(e.target)
+            ) {
+               handleClose();
             }
-        }, [parsed])
+         };
+         document.addEventListener('mousedown', handler);
+         return () => document.removeEventListener('mousedown', handler);
+      }, [handleClose]);
 
-        const handleClose = useCallback(() => {
-            setOpen(false)
-        }, [])
+      const emitTime = (h12Val, h24Val, mVal, pVal) => {
+         let finalH24 = h24Val;
+         if (is12h) {
+            if (pVal === 'PM' && h12Val < 12) finalH24 = h12Val + 12;
+            else if (pVal === 'AM' && h12Val === 12) finalH24 = 0;
+            else finalH24 = h12Val;
+         }
 
-        useImperativeHandle(outerRef, () => ({
-            close: handleClose,
-            open: () => setOpen(true)
-        }))
+         const time24Str = `${String(finalH24).padStart(2, '0')}:${String(mVal).padStart(2, '0')}`;
+         const time12Str = `${String(h12Val).padStart(2, '0')}:${String(mVal).padStart(2, '0')} ${pVal}`;
 
-        const { coords, updatePosition } = useDropdownPosition(open, triggerRef, 270)
+         if (!isControlled) setUncontrolledValue(time24Str);
+         onChange?.(time24Str, {
+            time24: time24Str,
+            time12: time12Str,
+            hours24: finalH24,
+            hours12: h12Val,
+            minutes: mVal,
+            period: pVal,
+         });
+      };
 
-        useEffect(() => {
-            const handler = (e) => {
-                if (
-                    triggerRef.current &&
-                    !triggerRef.current.contains(e.target) &&
-                    menuRef.current &&
-                    !menuRef.current.contains(e.target)
-                ) {
-                    handleClose()
-                }
-            }
-            document.addEventListener('mousedown', handler)
-            return () => document.removeEventListener('mousedown', handler)
-        }, [handleClose])
+      const displayFormatted = useMemo(() => {
+         if (!parsed.isValid) return placeholder;
+         if (is12h) {
+            return `${String(parsed.hours12).padStart(2, '0')}:${String(parsed.minutes).padStart(2, '0')} ${parsed.period}`;
+         }
+         return `${String(parsed.hours24).padStart(2, '0')}:${String(parsed.minutes).padStart(2, '0')}`;
+      }, [parsed, is12h, placeholder]);
 
-        const emitTime = (h12Val, h24Val, mVal, pVal) => {
-            let finalH24 = h24Val
-            if (is12h) {
-                if (pVal === 'PM' && h12Val < 12) finalH24 = h12Val + 12
-                else if (pVal === 'AM' && h12Val === 12) finalH24 = 0
-                else finalH24 = h12Val
-            }
+      const presets = [
+         { label: '09:00 AM', h12: 9, h24: 9, m: 0, p: 'AM' },
+         { label: '12:00 PM', h12: 12, h24: 12, m: 0, p: 'PM' },
+         { label: '03:00 PM', h12: 3, h24: 15, m: 0, p: 'PM' },
+         { label: '06:00 PM', h12: 6, h24: 18, m: 0, p: 'PM' },
+         { label: '09:00 PM', h12: 9, h24: 21, m: 0, p: 'PM' },
+      ];
 
-            const time24Str = `${String(finalH24).padStart(2, '0')}:${String(mVal).padStart(2, '0')}`
-            const time12Str = `${String(h12Val).padStart(2, '0')}:${String(mVal).padStart(2, '0')} ${pVal}`
+      const hourOptions = useMemo(() => {
+         if (is12h) {
+            return Array.from({ length: 12 }, (_, i) => i + 1);
+         }
+         return Array.from({ length: 24 }, (_, i) => i);
+      }, [is12h]);
 
-            if (!isControlled) setUncontrolledValue(time24Str)
-            onChange?.(time24Str, {
-                time24: time24Str,
-                time12: time12Str,
-                hours24: finalH24,
-                hours12: h12Val,
-                minutes: mVal,
-                period: pVal
-            })
-        }
+      const minuteOptions = useMemo(() => {
+         return [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+      }, []);
 
-        const displayFormatted = useMemo(() => {
-            if (!parsed.isValid) return placeholder
-            if (is12h) {
-                return `${String(parsed.hours12).padStart(2, '0')}:${String(parsed.minutes).padStart(2, '0')} ${parsed.period}`
-            }
-            return `${String(parsed.hours24).padStart(2, '0')}:${String(parsed.minutes).padStart(2, '0')}`
-        }, [parsed, is12h, placeholder])
+      const menuContent = (
+         <AnimatePresence>
+            {open && (
+               <motion.div
+                  ref={menuRef}
+                  initial={{
+                     opacity: 0,
+                     y: coords.placement === 'top' ? 4 : -4,
+                  }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{
+                     opacity: 0,
+                     y: coords.placement === 'top' ? 4 : -4,
+                  }}
+                  transition={{ duration: 0.1, ease: 'easeOut' }}
+                  style={{
+                     ...menuStyle,
+                     position: 'fixed',
+                     top: coords.placement === 'top' ? undefined : coords.top,
+                     bottom:
+                        coords.placement === 'top'
+                           ? window.innerHeight - coords.top
+                           : undefined,
+                     left: coords.left,
+                     width: 270,
+                     zIndex: menuStyle?.zIndex ?? 'var(--cc-z)',
+                  }}
+                  className={`rounded-2xl p-3 ${panelClass}`}>
+                  <div className="flex items-center gap-1 overflow-x-auto pb-2 border-b border-cc-overlay/10 customScrollbar">
+                     {presets.map((pr) => (
+                        <button
+                           key={pr.label}
+                           type="button"
+                           onClick={() => {
+                              setSelectedH12(pr.h12);
+                              setSelectedH24(pr.h24);
+                              setSelectedM(pr.m);
+                              setSelectedP(pr.p);
+                              emitTime(pr.h12, pr.h24, pr.m, pr.p);
+                           }}
+                           className="shrink-0 rounded-lg bg-cc-overlay/5 px-2 py-1 text-[11px] font-medium text-cc-text hover:bg-cc-primary/15 hover:text-cc-primary transition-colors">
+                           {pr.label}
+                        </button>
+                     ))}
+                  </div>
 
-        const presets = [
-            { label: '09:00 AM', h12: 9, h24: 9, m: 0, p: 'AM' },
-            { label: '12:00 PM', h12: 12, h24: 12, m: 0, p: 'PM' },
-            { label: '03:00 PM', h12: 3, h24: 15, m: 0, p: 'PM' },
-            { label: '06:00 PM', h12: 6, h24: 18, m: 0, p: 'PM' },
-            { label: '09:00 PM', h12: 9, h24: 21, m: 0, p: 'PM' }
-        ]
+                  <div className="grid grid-cols-3 gap-1 pt-2 pb-1 text-center">
+                     <div>
+                        <p className="text-[10px] font-bold uppercase text-cc-muted mb-1.5">
+                           Hours
+                        </p>
+                        <div className="h-44 overflow-y-auto customScrollbar space-y-1 pr-1">
+                           {hourOptions.map((h) => {
+                              const isSelected = is12h
+                                 ? selectedH12 === h
+                                 : selectedH24 === h;
 
-        const hourOptions = useMemo(() => {
-            if (is12h) {
-                return Array.from({ length: 12 }, (_, i) => i + 1)
-            }
-            return Array.from({ length: 24 }, (_, i) => i)
-        }, [is12h])
-
-        const minuteOptions = useMemo(() => {
-            return [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
-        }, [])
-
-        const menuContent = (
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        ref={menuRef}
-                        initial={{
-                            opacity: 0,
-                            y: coords.placement === 'top' ? 4 : -4
-                        }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{
-                            opacity: 0,
-                            y: coords.placement === 'top' ? 4 : -4
-                        }}
-                        transition={{ duration: 0.1, ease: 'easeOut' }}
-                        style={{
-                            ...menuStyle,
-                            position: 'fixed',
-                            top: coords.placement === 'top' ? undefined : coords.top,
-                            bottom: coords.placement === 'top' ? window.innerHeight - coords.top : undefined,
-                            left: coords.left,
-                            width: 270,
-                            zIndex: menuStyle?.zIndex ?? 'var(--cc-z)'
-                        }}
-                        className={`rounded-2xl p-3 ${panelClass}`}
-                    >
-                        <div className="flex items-center gap-1 overflow-x-auto pb-2 border-b border-cc-overlay/10 customScrollbar">
-                            {presets.map((pr) => (
-                                <button
-                                    key={pr.label}
+                              return (
+                                 <button
+                                    key={h}
                                     type="button"
                                     onClick={() => {
-                                        setSelectedH12(pr.h12)
-                                        setSelectedH24(pr.h24)
-                                        setSelectedM(pr.m)
-                                        setSelectedP(pr.p)
-                                        emitTime(pr.h12, pr.h24, pr.m, pr.p)
+                                       if (is12h) {
+                                          setSelectedH12(h);
+                                          emitTime(
+                                             h,
+                                             selectedH24,
+                                             selectedM,
+                                             selectedP,
+                                          );
+                                       } else {
+                                          setSelectedH24(h);
+                                          let h12 = h % 12;
+                                          if (h12 === 0) h12 = 12;
+                                          const p = h >= 12 ? 'PM' : 'AM';
+                                          setSelectedH12(h12);
+                                          setSelectedP(p);
+                                          emitTime(h12, h, selectedM, p);
+                                       }
                                     }}
-                                    className="shrink-0 rounded-lg bg-cc-overlay/5 px-2 py-1 text-[11px] font-medium text-cc-text hover:bg-cc-primary/15 hover:text-cc-primary transition-colors"
-                                >
-                                    {pr.label}
-                                </button>
-                            ))}
+                                    className={`w-full rounded-lg py-1.5 text-xs font-semibold transition-all ${
+                                       isSelected
+                                          ? 'bg-cc-primary text-cc-on-primary font-bold'
+                                          : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
+                                    }`}>
+                                    {String(h).padStart(2, '0')}
+                                 </button>
+                              );
+                           })}
                         </div>
+                     </div>
 
-                        <div className="grid grid-cols-3 gap-1 pt-2 pb-1 text-center">
-                            <div>
-                                <p className="text-[10px] font-bold uppercase text-cc-muted mb-1.5">Hours</p>
-                                <div className="h-44 overflow-y-auto customScrollbar space-y-1 pr-1">
-                                    {hourOptions.map((h) => {
-                                        const isSelected = is12h ? selectedH12 === h : selectedH24 === h
-
-                                        return (
-                                            <button
-                                                key={h}
-                                                type="button"
-                                                onClick={() => {
-                                                    if (is12h) {
-                                                        setSelectedH12(h)
-                                                        emitTime(h, selectedH24, selectedM, selectedP)
-                                                    } else {
-                                                        setSelectedH24(h)
-                                                        let h12 = h % 12
-                                                        if (h12 === 0) h12 = 12
-                                                        const p = h >= 12 ? 'PM' : 'AM'
-                                                        setSelectedH12(h12)
-                                                        setSelectedP(p)
-                                                        emitTime(h12, h, selectedM, p)
-                                                    }
-                                                }}
-                                                className={`w-full rounded-lg py-1.5 text-xs font-semibold transition-all ${isSelected
-                                                    ? 'bg-cc-primary text-cc-on-primary font-bold'
-                                                    : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
-                                                    }`}
-                                            >
-                                                {String(h).padStart(2, '0')}
-                                            </button>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className="text-[10px] font-bold uppercase text-cc-muted mb-1.5">Mins</p>
-                                <div className="h-44 overflow-y-auto customScrollbar space-y-1 pr-1">
-                                    {minuteOptions.map((m) => {
-                                        const isSelected = selectedM === m
-                                        return (
-                                            <button
-                                                key={m}
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedM(m)
-                                                    emitTime(selectedH12, selectedH24, m, selectedP)
-                                                }}
-                                                className={`w-full rounded-lg py-1.5 text-xs font-semibold transition-all ${isSelected
-                                                    ? 'bg-cc-primary text-cc-on-primary font-bold'
-                                                    : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
-                                                    }`}
-                                            >
-                                                {String(m).padStart(2, '0')}
-                                            </button>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className="text-[10px] font-bold uppercase text-cc-muted mb-1.5">
-                                    {is12h ? 'Period' : 'Actions'}
-                                </p>
-                                {is12h ? (
-                                    <div className="space-y-2 pt-2">
-                                        {['AM', 'PM'].map((period) => (
-                                            <button
-                                                key={period}
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedP(period)
-                                                    emitTime(selectedH12, selectedH24, selectedM, period)
-                                                }}
-                                                className={`w-full rounded-xl py-3 text-xs font-bold transition-all ${selectedP === period
-                                                    ? 'bg-cc-primary text-cc-on-primary shadow-md shadow-cc-primary/20'
-                                                    : 'bg-cc-overlay/5 text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text'
-                                                    }`}
-                                            >
-                                                {period}
-                                            </button>
-                                        ))}
-                                    </div>
-                                ) : null}
-
-                                <button
+                     <div>
+                        <p className="text-[10px] font-bold uppercase text-cc-muted mb-1.5">
+                           Mins
+                        </p>
+                        <div className="h-44 overflow-y-auto customScrollbar space-y-1 pr-1">
+                           {minuteOptions.map((m) => {
+                              const isSelected = selectedM === m;
+                              return (
+                                 <button
+                                    key={m}
                                     type="button"
                                     onClick={() => {
-                                        const now = new Date()
-                                        const nowH24 = now.getHours()
-                                        const nowM = Math.floor(now.getMinutes() / 5) * 5
-                                        const nowP = nowH24 >= 12 ? 'PM' : 'AM'
-                                        let nowH12 = nowH24 % 12
-                                        if (nowH12 === 0) nowH12 = 12
-
-                                        setSelectedH12(nowH12)
-                                        setSelectedH24(nowH24)
-                                        setSelectedM(nowM)
-                                        setSelectedP(nowP)
-                                        emitTime(nowH12, nowH24, nowM, nowP)
-                                        handleClose()
+                                       setSelectedM(m);
+                                       emitTime(
+                                          selectedH12,
+                                          selectedH24,
+                                          m,
+                                          selectedP,
+                                       );
                                     }}
-                                    className="w-full mt-3 rounded-xl bg-cc-overlay/10 border border-cc-overlay/10 py-2 text-[11px] font-semibold text-cc-primary hover:bg-cc-primary/15 transition-colors"
-                                >
-                                    Now
-                                </button>
-                            </div>
+                                    className={`w-full rounded-lg py-1.5 text-xs font-semibold transition-all ${
+                                       isSelected
+                                          ? 'bg-cc-primary text-cc-on-primary font-bold'
+                                          : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
+                                    }`}>
+                                    {String(m).padStart(2, '0')}
+                                 </button>
+                              );
+                           })}
                         </div>
+                     </div>
 
-                        <div className="mt-2 flex items-center justify-between border-t border-cc-overlay/10 pt-2">
-                            {cleanable && parsed.isValid && (
-                                <button
+                     <div>
+                        <p className="text-[10px] font-bold uppercase text-cc-muted mb-1.5">
+                           {is12h ? 'Period' : 'Actions'}
+                        </p>
+                        {is12h ? (
+                           <div className="space-y-2 pt-2">
+                              {['AM', 'PM'].map((period) => (
+                                 <button
+                                    key={period}
                                     type="button"
                                     onClick={() => {
-                                        if (!isControlled) setUncontrolledValue('')
-                                        onChange?.('')
-                                        handleClose()
+                                       setSelectedP(period);
+                                       emitTime(
+                                          selectedH12,
+                                          selectedH24,
+                                          selectedM,
+                                          period,
+                                       );
                                     }}
-                                    className="rounded-lg px-2.5 py-1 text-xs text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text transition-colors"
-                                >
-                                    Clear
-                                </button>
-                            )}
-                            <button
-                                type="button"
-                                onClick={handleClose}
-                                className="ml-auto rounded-lg bg-cc-primary px-4 py-1 text-xs font-bold text-cc-on-primary hover:bg-cc-primary-hover transition-colors"
-                            >
-                                Done
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        )
+                                    className={`w-full rounded-xl py-3 text-xs font-bold transition-all ${
+                                       selectedP === period
+                                          ? 'bg-cc-primary text-cc-on-primary shadow-md shadow-cc-primary/20'
+                                          : 'bg-cc-overlay/5 text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text'
+                                    }`}>
+                                    {period}
+                                 </button>
+                              ))}
+                           </div>
+                        ) : null}
 
-        const sizeClass = controlSizes[size] || controlSizes.md
+                        <button
+                           type="button"
+                           onClick={() => {
+                              const now = new Date();
+                              const nowH24 = now.getHours();
+                              const nowM = Math.floor(now.getMinutes() / 5) * 5;
+                              const nowP = nowH24 >= 12 ? 'PM' : 'AM';
+                              let nowH12 = nowH24 % 12;
+                              if (nowH12 === 0) nowH12 = 12;
 
-        return (
-            <div
-                ref={triggerRef}
-                className={`relative ${className}`}
-                style={style}
-                {...filterDomProps(props)}
-            >
-                {name && <input type="hidden" name={name} value={value || ''} />}
-                <button
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => {
-                        if (disabled) return
-                        if (!open) updatePosition()
-                        setOpen((v) => !v)
-                    }}
-                    className={`flex ${sizeClass} w-full items-center justify-between gap-2 rounded-xl border px-4 text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open
-                        ? 'border-cc-primary/50 bg-cc-surface ring-4 ring-cc-primary/10'
-                        : 'border-cc-overlay/10 bg-cc-surface hover:border-cc-primary/30'
-                        } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
-                >
-                    <span className="flex items-center gap-2.5 min-w-0">
-                        <AccessTimeOutlinedIcon
-                            size={18}
-                            strokeWidth={2}
-                            className={open ? 'text-cc-primary' : 'text-cc-muted'}
-                        />
-                        <span
-                            className={
-                                parsed.isValid ? 'truncate text-cc-text font-medium' : 'truncate text-cc-muted'
-                            }
-                        >
-                            {displayFormatted}
-                        </span>
-                    </span>
-                    <div className="flex items-center gap-1 shrink-0">
-                        {cleanable && parsed.isValid && (
-                            <span
-                                role="button"
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    onChange?.('')
-                                }}
-                                className="flex h-6 w-6 items-center justify-center rounded-md text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text"
-                            >
-                                <CloseRounded className="w-4 h-4" />
-                            </span>
-                        )}
-                        <KeyboardArrowDownRounded
-                            size={20}
-                            strokeWidth={2}
-                            className={`text-cc-muted transition-transform duration-200 ${open ? 'rotate-180 text-cc-primary' : ''
-                                }`}
-                        />
-                    </div>
-                </button>
-                <ThemedPortal>{menuContent}</ThemedPortal>
-            </div>
-        )
-    }
-)
+                              setSelectedH12(nowH12);
+                              setSelectedH24(nowH24);
+                              setSelectedM(nowM);
+                              setSelectedP(nowP);
+                              emitTime(nowH12, nowH24, nowM, nowP);
+                              handleClose();
+                           }}
+                           className="w-full mt-3 rounded-xl bg-cc-overlay/10 border border-cc-overlay/10 py-2 text-[11px] font-semibold text-cc-primary hover:bg-cc-primary/15 transition-colors">
+                           Now
+                        </button>
+                     </div>
+                  </div>
+
+                  <div className="mt-2 flex items-center justify-between border-t border-cc-overlay/10 pt-2">
+                     {cleanable && parsed.isValid && (
+                        <button
+                           type="button"
+                           onClick={() => {
+                              if (!isControlled) setUncontrolledValue('');
+                              onChange?.('');
+                              handleClose();
+                           }}
+                           className="rounded-lg px-2.5 py-1 text-xs text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text transition-colors">
+                           Clear
+                        </button>
+                     )}
+                     <button
+                        type="button"
+                        onClick={handleClose}
+                        className="ml-auto rounded-lg bg-cc-primary px-4 py-1 text-xs font-bold text-cc-on-primary hover:bg-cc-primary-hover transition-colors">
+                        Done
+                     </button>
+                  </div>
+               </motion.div>
+            )}
+         </AnimatePresence>
+      );
+
+      const sizeClass = getControlSizeClass(size);
+
+      return (
+         <div
+            ref={triggerRef}
+            className={`relative ${className}`}
+            style={style}
+            {...filterDomProps(props)}>
+            {name && <input type="hidden" name={name} value={value || ''} />}
+            <button
+               type="button"
+               disabled={disabled}
+               onClick={() => {
+                  if (disabled) return;
+                  if (!open) updatePosition();
+                  setOpen((v) => !v);
+               }}
+               className={`flex ${sizeClass} w-full items-center justify-between gap-2 rounded-xl border px-4 text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${
+                  open
+                     ? 'border-cc-primary/50 bg-cc-surface ring-4 ring-cc-primary/10'
+                     : 'border-cc-overlay/10 bg-cc-surface hover:border-cc-primary/30'
+               } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}>
+               <span className="flex items-center gap-2.5 min-w-0">
+                  <AccessTimeOutlinedIcon
+                     size={18}
+                     strokeWidth={2}
+                     className={open ? 'text-cc-primary' : 'text-cc-muted'}
+                  />
+                  <span
+                     className={
+                        parsed.isValid
+                           ? 'truncate text-cc-text font-medium'
+                           : 'truncate text-cc-muted'
+                     }>
+                     {displayFormatted}
+                  </span>
+               </span>
+               <div className="flex items-center gap-1 shrink-0">
+                  {cleanable && parsed.isValid && (
+                     <span
+                        role="button"
+                        onClick={(e) => {
+                           e.stopPropagation();
+                           onChange?.('');
+                        }}
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-cc-muted hover:bg-cc-overlay/10 hover:text-cc-text">
+                        <CloseRounded className="w-4 h-4" />
+                     </span>
+                  )}
+                  <KeyboardArrowDownRounded
+                     size={20}
+                     strokeWidth={2}
+                     className={`text-cc-muted transition-transform duration-200 ${
+                        open ? 'rotate-180 text-cc-primary' : ''
+                     }`}
+                  />
+               </div>
+            </button>
+            <ThemedPortal>{menuContent}</ThemedPortal>
+         </div>
+      );
+   },
+);
 
 export const Modal = ({
-    open,
-    onClose,
-    children,
-    size = 'md',
-    closeOnEsc = true,
-    closeOnBackdropClick = true,
-    className = ''
+   open,
+   onClose,
+   children,
+   size = 'md',
+   closeOnEsc = true,
+   closeOnBackdropClick = true,
+   className = '',
 }) => {
-    useEffect(() => {
-        if (!open) return undefined
-        const handleKeyDown = (e) => {
-            if (e.key === 'Escape' && closeOnEsc) {
-                onClose?.()
-            }
-        }
-        document.addEventListener('keydown', handleKeyDown)
-        const originalOverflow = document.body.style.overflow
-        document.body.style.overflow = 'hidden'
+   useEffect(() => {
+      if (!open) return undefined;
+      const handleKeyDown = (e) => {
+         if (e.key === 'Escape' && closeOnEsc) {
+            onClose?.();
+         }
+      };
+      document.addEventListener('keydown', handleKeyDown);
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
 
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown)
-            document.body.style.overflow = originalOverflow
-        }
-    }, [open, closeOnEsc, onClose])
+      return () => {
+         document.removeEventListener('keydown', handleKeyDown);
+         document.body.style.overflow = originalOverflow;
+      };
+   }, [open, closeOnEsc, onClose]);
 
-    if (!open) return null
-    const widths = {
-        xs: 'max-w-md',
-        sm: 'max-w-lg',
-        md: 'max-w-2xl',
-        lg: 'max-w-5xl',
-        xl: 'max-w-6xl'
-    }
+   if (!open) return null;
+   const safeSize = typeof size === 'string' ? size.toLowerCase() : size;
+   const widths = {
+      xs: 'max-w-md',
+      sm: 'max-w-lg',
+      md: 'max-w-2xl',
+      lg: 'max-w-5xl',
+      xl: 'max-w-6xl',
+      small: 'max-w-lg',
+      medium: 'max-w-2xl',
+      large: 'max-w-5xl',
+   };
 
-    return (
-        <ThemedPortal>
-            <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="absolute inset-0 bg-cc-scrim/60 backdrop-blur-sm"
-                    onClick={closeOnBackdropClick ? onClose : undefined}
-                />
-                <motion.div
-                    initial={{ opacity: 0, y: 16, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    className={`relative flex max-h-[90vh] w-full ${widths[size] || widths.md} flex-col overflow-hidden rounded-2xl border border-cc-overlay/10 bg-cc-surface shadow-2xl shadow-cc-scrim/15 ${className}`}
-                >
-                    {children}
-                </motion.div>
-            </div>
-        </ThemedPortal>
-    )
-}
+   return (
+      <ThemedPortal>
+         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <motion.div
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               className="absolute inset-0 bg-cc-scrim/60 backdrop-blur-sm"
+               onClick={closeOnBackdropClick ? onClose : undefined}
+            />
+            <motion.div
+               initial={{ opacity: 0, y: 16, scale: 0.98 }}
+               animate={{ opacity: 1, y: 0, scale: 1 }}
+               className={`relative flex max-h-[90vh] w-full ${widths[safeSize] || widths.md} flex-col overflow-hidden rounded-2xl border border-cc-overlay/10 bg-cc-surface shadow-2xl shadow-cc-scrim/15 ${className}`}>
+               {children}
+            </motion.div>
+         </div>
+      </ThemedPortal>
+   );
+};
 
 Modal.Header = ({ children, className = '' }) => (
-    <div
-        className={`flex items-center justify-between border-b border-cc-overlay/10 px-5 py-4 ${className}`}
-    >
-        {children}
-    </div>
-)
+   <div
+      className={`flex items-center justify-between border-b border-cc-overlay/10 px-5 py-4 ${className}`}>
+      {children}
+   </div>
+);
 
 Modal.Title = ({ children, className = '' }) => (
-    <div className={`text-base font-semibold text-cc-text ${className}`}>{children}</div>
-)
+   <div className={`text-base font-semibold text-cc-text ${className}`}>
+      {children}
+   </div>
+);
 
 Modal.Body = ({ children, className = '' }) => (
-    <div className={`min-h-0 flex-1 overflow-auto customScrollbar px-5 py-4 ${className}`}>
-        {children}
-    </div>
-)
+   <div
+      className={`min-h-0 flex-1 overflow-auto customScrollbar px-5 py-4 ${className}`}>
+      {children}
+   </div>
+);
 
 Modal.Footer = ({ children, className = '' }) => (
-    <div
-        className={`flex items-center justify-end gap-2 border-t border-cc-overlay/10 px-5 py-4 ${className}`}
-    >
-        {children}
-    </div>
-)
+   <div
+      className={`flex items-center justify-end gap-2 border-t border-cc-overlay/10 px-5 py-4 ${className}`}>
+      {children}
+   </div>
+);
 
 export const InputNumber = ({
-    value: controlledValue,
-    defaultValue = '',
-    onChange,
-    min,
-    max,
-    step = 'any',
-    prefix,
-    size = 'md',
-    name,
-    disabled = false,
-    formatter,
-    className = '',
-    placeholder,
-    onFocus,
-    onBlur,
-    ...props
+   value: controlledValue,
+   defaultValue = '',
+   onChange,
+   min,
+   max,
+   step = 'any',
+   prefix,
+   size = 'md',
+   name,
+   disabled = false,
+   formatter,
+   className = '',
+   placeholder,
+   onFocus,
+   onBlur,
+   ...props
 }) => {
-    const isControlled = controlledValue !== undefined
-    const [innerValue, setInnerValue] = useState(defaultValue)
-    const value = isControlled ? controlledValue : innerValue
+   const isControlled = controlledValue !== undefined;
+   const [innerValue, setInnerValue] = useState(defaultValue);
+   const value = isControlled ? controlledValue : innerValue;
 
-    const [isFocused, setIsFocused] = useState(false)
-    const [localStr, setLocalStr] = useState(
-        value === '' || value === null || value === undefined ? '' : String(value)
-    )
+   const [isFocused, setIsFocused] = useState(false);
+   const [localStr, setLocalStr] = useState(
+      value === '' || value === null || value === undefined
+         ? ''
+         : String(value),
+   );
 
-    useEffect(() => {
-        if (!isFocused) {
-            setLocalStr(value === '' || value === null || value === undefined ? '' : String(value))
-        }
-    }, [value, isFocused])
+   useEffect(() => {
+      if (!isFocused) {
+         setLocalStr(
+            value === '' || value === null || value === undefined
+               ? ''
+               : String(value),
+         );
+      }
+   }, [value, isFocused]);
 
-    const displayValue = isFocused
-        ? localStr
-        : value === '' || value === null || value === undefined
+   const displayValue = isFocused
+      ? localStr
+      : value === '' || value === null || value === undefined
+        ? ''
+        : formatter
+          ? formatter(value)
+          : String(value);
+
+   const handleChange = (e) => {
+      const raw = e.target.value;
+      if (raw === '' || raw === null || raw === undefined) {
+         setLocalStr('');
+         if (!isControlled) setInnerValue('');
+         onChange?.('');
+         return;
+      }
+
+      const allowNegative = min === undefined || min < 0;
+      const hasMinus = allowNegative && raw.includes('-');
+      let cleanDigits = raw.replace(/[^0-9.]/g, '');
+      const parts = cleanDigits.split('.');
+      if (parts.length > 2) {
+         cleanDigits = parts[0] + '.' + parts.slice(1).join('');
+      }
+
+      const clean = (hasMinus ? '-' : '') + cleanDigits;
+      setLocalStr(clean);
+
+      if (clean === '' || clean === '.' || clean === '-' || clean === '-.') {
+         if (!isControlled) setInnerValue('');
+         onChange?.('');
+      } else {
+         const num = Number(clean);
+         if (!Number.isNaN(num)) {
+            if (!isControlled) setInnerValue(num);
+            onChange?.(num);
+         }
+      }
+   };
+
+   const handleFocus = (e) => {
+      setIsFocused(true);
+      setLocalStr(
+         value === '' || value === null || value === undefined
             ? ''
-            : formatter
-                ? formatter(value)
-                : String(value)
+            : String(value),
+      );
+      onFocus?.(e);
+   };
 
-    const handleChange = (e) => {
-        const raw = e.target.value
-        if (raw === '' || raw === null || raw === undefined) {
-            setLocalStr('')
-            if (!isControlled) setInnerValue('')
-            onChange?.('')
-            return
-        }
+   const handleBlur = (e) => {
+      setIsFocused(false);
+      onBlur?.(e);
+      if (
+         localStr === '.' ||
+         localStr === '-' ||
+         localStr === '-.' ||
+         localStr === ''
+      ) {
+         setLocalStr('');
+         if (!isControlled) setInnerValue('');
+         onChange?.('');
+      } else {
+         const num = Number(localStr);
+         if (!Number.isNaN(num)) {
+            let finalNum = num;
+            if (min !== undefined && num < min) finalNum = min;
+            if (max !== undefined && num > max) finalNum = max;
+            if (!isControlled) setInnerValue(finalNum);
+            onChange?.(finalNum);
+            setLocalStr(String(finalNum));
+         }
+      }
+   };
 
-        const allowNegative = min === undefined || min < 0
-        const hasMinus = allowNegative && raw.includes('-')
-        let cleanDigits = raw.replace(/[^0-9.]/g, '')
-        const parts = cleanDigits.split('.')
-        if (parts.length > 2) {
-            cleanDigits = parts[0] + '.' + parts.slice(1).join('')
-        }
+   const sizeClass = getControlSizeClass(size);
 
-        const clean = (hasMinus ? '-' : '') + cleanDigits
-        setLocalStr(clean)
-
-        if (clean === '' || clean === '.' || clean === '-' || clean === '-.') {
-            if (!isControlled) setInnerValue('')
-            onChange?.('')
-        } else {
-            const num = Number(clean)
-            if (!Number.isNaN(num)) {
-                if (!isControlled) setInnerValue(num)
-                onChange?.(num)
-            }
-        }
-    }
-
-    const handleFocus = (e) => {
-        setIsFocused(true)
-        setLocalStr(value === '' || value === null || value === undefined ? '' : String(value))
-        onFocus?.(e)
-    }
-
-    const handleBlur = (e) => {
-        setIsFocused(false)
-        onBlur?.(e)
-        if (localStr === '.' || localStr === '-' || localStr === '-.' || localStr === '') {
-            setLocalStr('')
-            if (!isControlled) setInnerValue('')
-            onChange?.('')
-        } else {
-            const num = Number(localStr)
-            if (!Number.isNaN(num)) {
-                let finalNum = num
-                if (min !== undefined && num < min) finalNum = min
-                if (max !== undefined && num > max) finalNum = max
-                if (!isControlled) setInnerValue(finalNum)
-                onChange?.(finalNum)
-                setLocalStr(String(finalNum))
-            }
-        }
-    }
-
-    const sizeClass = controlSizes[size] || controlSizes.md
-
-    return (
-        <div className={`relative flex items-center ${className}`}>
-            {name && <input type="hidden" name={name} value={value} disabled={disabled} />}
-            {prefix !== undefined && prefix !== null && (
-                <div className="absolute left-3 z-10 flex items-center text-cc-muted pointer-events-none">
-                    {prefix}
-                </div>
-            )}
+   return (
+      <div className={`relative flex items-center ${className}`}>
+         {name && (
             <input
-                {...filterDomProps(props)}
-                type="text"
-                inputMode="decimal"
-                value={displayValue}
-                disabled={disabled}
-                placeholder={placeholder}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface ${sizeClass} font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${prefix !== undefined && prefix !== null ? 'pl-9' : ''}`}
+               type="hidden"
+               name={name}
+               value={value}
+               disabled={disabled}
             />
-        </div>
-    )
-}
+         )}
+         {prefix !== undefined && prefix !== null && (
+            <div className="absolute left-3 z-10 flex items-center text-cc-muted pointer-events-none">
+               {prefix}
+            </div>
+         )}
+         <input
+            {...filterDomProps(props)}
+            type="text"
+            inputMode="decimal"
+            value={displayValue}
+            disabled={disabled}
+            placeholder={placeholder}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onChange={handleChange}
+            className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface ${sizeClass} font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${prefix !== undefined && prefix !== null ? 'pl-9' : ''}`}
+         />
+      </div>
+   );
+};
 
 const normalizePickerData = (data = []) =>
-    (Array.isArray(data) ? data : []).map((item) => (typeof item === 'object' && item !== null ? item : { label: String(item), value: item }))
+   (Array.isArray(data) ? data : []).map((item) =>
+      typeof item === 'object' && item !== null
+         ? item
+         : { label: String(item), value: item },
+   );
 
 export const CheckPicker = forwardRef(
-    (
-        {
-            data = [],
-            value: controlledValue,
-            defaultValue = [],
-            onChange,
-            placeholder = 'Select...',
-            searchable = true,
-            size = 'md',
-            name,
-            tagDisplay = false,
-            loading = false,
-            onSearch,
-            groupBy,
-            className = '',
-            menuMaxHeight = 260,
-            menuWidth,
-            menuStyle,
-            disabled = false,
-            renderMenuItem,
-            renderExtraFooter,
-            onCreateNew,
-            createNewText,
-            ...props
-        },
-        outerRef
-    ) => {
-        const items = normalizePickerData(data)
-        const isControlled = controlledValue !== undefined
-        const [innerValue, setInnerValue] = useState(defaultValue)
-        const selectedValues = Array.isArray(isControlled ? controlledValue : innerValue)
-            ? (isControlled ? controlledValue : innerValue)
-            : []
+   (
+      {
+         data = [],
+         value: controlledValue,
+         defaultValue = [],
+         onChange,
+         placeholder = 'Select...',
+         searchable = true,
+         size = 'md',
+         name,
+         tagDisplay = false,
+         loading = false,
+         onSearch,
+         groupBy,
+         className = '',
+         menuMaxHeight = 260,
+         menuWidth,
+         menuStyle,
+         disabled = false,
+         renderMenuItem,
+         renderExtraFooter,
+         onCreateNew,
+         createNewText,
+         ...props
+      },
+      outerRef,
+   ) => {
+      const items = normalizePickerData(data);
+      const isControlled = controlledValue !== undefined;
+      const [innerValue, setInnerValue] = useState(defaultValue);
+      const selectedValues = Array.isArray(
+         isControlled ? controlledValue : innerValue,
+      )
+         ? isControlled
+            ? controlledValue
+            : innerValue
+         : [];
 
-        const [open, setOpen] = useState(false)
-        const [query, setQuery] = useState('')
-        const [focusedIndex, setFocusedIndex] = useState(-1)
-        const triggerRef = useRef(null)
-        const menuRef = useRef(null)
-        const listRef = useRef(null)
-        const resolvedMenuWidth = menuStyle?.width ?? menuWidth ?? null
-        const { coords, updatePosition } = useDropdownPosition(open, triggerRef, resolvedMenuWidth)
+      const [open, setOpen] = useState(false);
+      const [query, setQuery] = useState('');
+      const [focusedIndex, setFocusedIndex] = useState(-1);
+      const triggerRef = useRef(null);
+      const menuRef = useRef(null);
+      const listRef = useRef(null);
+      const resolvedMenuWidth = menuStyle?.width ?? menuWidth ?? null;
+      const { coords, updatePosition } = useDropdownPosition(
+         open,
+         triggerRef,
+         resolvedMenuWidth,
+      );
 
-        const handleClose = useCallback(() => {
-            setOpen(false)
-            setQuery('')
-            setFocusedIndex(-1)
-        }, [])
+      const handleClose = useCallback(() => {
+         setOpen(false);
+         setQuery('');
+         setFocusedIndex(-1);
+      }, []);
 
-        useImperativeHandle(outerRef, () => ({
-            close: handleClose,
-            open: () => {
-                updatePosition()
-                setOpen(true)
+      useImperativeHandle(outerRef, () => ({
+         close: handleClose,
+         open: () => {
+            updatePosition();
+            setOpen(true);
+         },
+      }));
+
+      useEffect(() => {
+         const handler = (e) => {
+            if (
+               triggerRef.current &&
+               !triggerRef.current.contains(e.target) &&
+               menuRef.current &&
+               !menuRef.current.contains(e.target)
+            ) {
+               handleClose();
             }
-        }))
+         };
+         document.addEventListener('mousedown', handler);
+         return () => document.removeEventListener('mousedown', handler);
+      }, [handleClose]);
 
-        useEffect(() => {
-            const handler = (e) => {
-                if (
-                    triggerRef.current &&
-                    !triggerRef.current.contains(e.target) &&
-                    menuRef.current &&
-                    !menuRef.current.contains(e.target)
-                ) {
-                    handleClose()
-                }
+      const filtered = useMemo(
+         () =>
+            !query
+               ? items
+               : items.filter((i) =>
+                    String(i.label ?? i.value)
+                       .toLowerCase()
+                       .includes(query.toLowerCase()),
+                 ),
+         [items, query],
+      );
+
+      const handleSearchChange = (e) => {
+         const val = e.target.value;
+         setQuery(val);
+         onSearch?.(val);
+      };
+
+      useEffect(() => {
+         if (open) {
+            setFocusedIndex(filtered.length > 0 ? 0 : -1);
+         }
+      }, [open, query, filtered.length]);
+
+      useEffect(() => {
+         if (open && focusedIndex >= 0 && listRef.current) {
+            const targetEl = listRef.current.children[focusedIndex];
+            if (targetEl && typeof targetEl.scrollIntoView === 'function') {
+               targetEl.scrollIntoView({ block: 'nearest' });
             }
-            document.addEventListener('mousedown', handler)
-            return () => document.removeEventListener('mousedown', handler)
-        }, [handleClose])
+         }
+      }, [focusedIndex, open]);
 
-        const filtered = useMemo(
-            () =>
-                !query
-                    ? items
-                    : items.filter((i) =>
-                        String(i.label ?? i.value)
-                            .toLowerCase()
-                            .includes(query.toLowerCase())
-                    ),
-            [items, query]
-        )
+      const toggle = (v) => {
+         const exists = selectedValues.some((x) => String(x) === String(v));
+         const next = exists
+            ? selectedValues.filter((x) => String(x) !== String(v))
+            : [...selectedValues, v];
+         if (!isControlled) setInnerValue(next);
+         onChange?.(next);
+      };
 
-        const handleSearchChange = (e) => {
-            const val = e.target.value
-            setQuery(val)
-            onSearch?.(val)
-        }
-
-        useEffect(() => {
-            if (open) {
-                setFocusedIndex(filtered.length > 0 ? 0 : -1)
+      const handleKeyDown = (e) => {
+         e.stopPropagation();
+         if (!open) {
+            if (
+               e.key === 'ArrowDown' ||
+               e.key === 'ArrowUp' ||
+               e.key === 'Enter'
+            ) {
+               e.preventDefault();
+               updatePosition();
+               setOpen(true);
             }
-        }, [open, query, filtered.length])
+            return;
+         }
 
-        useEffect(() => {
-            if (open && focusedIndex >= 0 && listRef.current) {
-                const targetEl = listRef.current.children[focusedIndex]
-                if (targetEl && typeof targetEl.scrollIntoView === 'function') {
-                    targetEl.scrollIntoView({ block: 'nearest' })
-                }
+         const extraCount = renderExtraFooter || onCreateNew ? 1 : 0;
+         const totalCount = filtered.length + extraCount;
+
+         if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setFocusedIndex((prev) => (prev < totalCount - 1 ? prev + 1 : 0));
+         } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setFocusedIndex((prev) => (prev > 0 ? prev - 1 : totalCount - 1));
+         } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (focusedIndex >= 0 && focusedIndex < filtered.length) {
+               toggle(filtered[focusedIndex].value);
+            } else if (
+               focusedIndex === filtered.length &&
+               (renderExtraFooter || onCreateNew)
+            ) {
+               handleClose();
+               if (onCreateNew) {
+                  onCreateNew();
+               } else if (typeof renderExtraFooter === 'function') {
+                  renderExtraFooter(handleClose);
+               }
             }
-        }, [focusedIndex, open])
+         } else if (e.key === 'Escape') {
+            e.preventDefault();
+            handleClose();
+         }
+      };
 
-        const toggle = (v) => {
-            const exists = selectedValues.some((x) => String(x) === String(v))
-            const next = exists
-                ? selectedValues.filter((x) => String(x) !== String(v))
-                : [...selectedValues, v]
-            if (!isControlled) setInnerValue(next)
-            onChange?.(next)
-        }
+      const selectedItems = items.filter((i) =>
+         selectedValues.some((v) => String(v) === String(i.value)),
+      );
+      const labels = selectedItems.map((i) => i.label);
+      const sizeClass = getControlSizeClass(size);
 
-        const handleKeyDown = (e) => {
-            e.stopPropagation()
-            if (!open) {
-                if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
-                    e.preventDefault()
-                    updatePosition()
-                    setOpen(true)
-                }
-                return
-            }
-
-            const extraCount = renderExtraFooter || onCreateNew ? 1 : 0
-            const totalCount = filtered.length + extraCount
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault()
-                setFocusedIndex((prev) => (prev < totalCount - 1 ? prev + 1 : 0))
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault()
-                setFocusedIndex((prev) => (prev > 0 ? prev - 1 : totalCount - 1))
-            } else if (e.key === 'Enter') {
-                e.preventDefault()
-                if (focusedIndex >= 0 && focusedIndex < filtered.length) {
-                    toggle(filtered[focusedIndex].value)
-                } else if (focusedIndex === filtered.length && (renderExtraFooter || onCreateNew)) {
-                    handleClose()
-                    if (onCreateNew) {
-                        onCreateNew()
-                    } else if (typeof renderExtraFooter === 'function') {
-                        renderExtraFooter(handleClose)
-                    }
-                }
-            } else if (e.key === 'Escape') {
-                e.preventDefault()
-                handleClose()
-            }
-        }
-
-        const selectedItems = items.filter((i) => selectedValues.some((v) => String(v) === String(i.value)))
-        const labels = selectedItems.map((i) => i.label)
-        const sizeClass = controlSizes[size] || controlSizes.md
-
-        const menuContent = (
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        ref={menuRef}
-                        initial={{
-                            opacity: 0,
-                            y: coords.placement === 'top' ? 5 : -5
-                        }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: coords.placement === 'top' ? 5 : -5 }}
-                        style={{
-                            ...menuStyle,
-                            position: 'fixed',
-                            top: coords.placement === 'top' ? undefined : coords.top,
-                            bottom: coords.placement === 'top' ? window.innerHeight - coords.top : undefined,
-                            left: coords.left,
-                            width: coords.width,
-                            maxWidth: 'calc(100vw - 24px)',
-                            zIndex: menuStyle?.zIndex ?? 'var(--cc-z)'
-                        }}
-                        className={`overflow-hidden rounded-2xl ${panelClass}`}
-                    >
-                        {searchable && (
-                            <div className="border-b border-cc-overlay/10 p-2">
-                                <div className="flex items-center rounded-xl border border-cc-overlay/10 bg-cc-overlay/5 px-3">
-                                    <input
-                                        autoFocus
-                                        value={query}
-                                        onChange={handleSearchChange}
-                                        onKeyDown={handleKeyDown}
-                                        placeholder="Search..."
-                                        className="h-10 w-full bg-transparent text-sm text-cc-text outline-none"
-                                    />
-                                    {loading && (
-                                        <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-cc-primary border-r-transparent" />
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                        <div
-                            ref={listRef}
-                            className="overflow-y-auto p-1.5 customScrollbar"
-                            style={{ maxHeight: menuMaxHeight }}
-                        >
-                            {filtered.length === 0 ? (
-                                <div className="px-4 py-6 text-center text-sm text-cc-muted">No results found</div>
-                            ) : (
-                                filtered.map((item, idx) => {
-                                    const checked = selectedValues.some((v) => String(v) === String(item.value))
-                                    const isFocused = idx === focusedIndex
-                                    const isGroupHeader = groupBy && (idx === 0 || item[groupBy] !== filtered[idx - 1][groupBy])
-
-                                    return (
-                                        <React.Fragment key={String(item.value)}>
-                                            {isGroupHeader && item[groupBy] && (
-                                                <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-cc-muted select-none">
-                                                    {item[groupBy]}
-                                                </div>
-                                            )}
-                                            <button
-                                                type="button"
-                                                onMouseEnter={() => setFocusedIndex(idx)}
-                                                onClick={() => toggle(item.value)}
-                                                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm ${checked
-                                                    ? 'bg-cc-primary/10 text-cc-primary'
-                                                    : isFocused
-                                                        ? 'bg-cc-overlay/10 text-cc-text'
-                                                        : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
-                                                    }`}
-                                            >
-                                                <span className="truncate">{item.label ?? item.value}</span>
-                                                <span
-                                                    className={`h-5 w-5 rounded-md border flex items-center justify-center ${checked ? 'border-cc-primary bg-cc-primary text-cc-on-primary' : 'border-cc-overlay/15'
-                                                        }`}
-                                                >
-                                                    {checked ? '✓' : ''}
-                                                </span>
-                                            </button>
-                                        </React.Fragment>
-                                    )
-                                })
-                            )}
+      const menuContent = (
+         <AnimatePresence>
+            {open && (
+               <motion.div
+                  ref={menuRef}
+                  initial={{
+                     opacity: 0,
+                     y: coords.placement === 'top' ? 5 : -5,
+                  }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: coords.placement === 'top' ? 5 : -5 }}
+                  style={{
+                     ...menuStyle,
+                     position: 'fixed',
+                     top: coords.placement === 'top' ? undefined : coords.top,
+                     bottom:
+                        coords.placement === 'top'
+                           ? window.innerHeight - coords.top
+                           : undefined,
+                     left: coords.left,
+                     width: coords.width,
+                     maxWidth: 'calc(100vw - 24px)',
+                     zIndex: menuStyle?.zIndex ?? 'var(--cc-z)',
+                  }}
+                  className={`overflow-hidden rounded-2xl ${panelClass}`}>
+                  {searchable && (
+                     <div className="border-b border-cc-overlay/10 p-2">
+                        <div className="flex items-center rounded-xl border border-cc-overlay/10 bg-cc-overlay/5 px-3">
+                           <input
+                              autoFocus
+                              value={query}
+                              onChange={handleSearchChange}
+                              onKeyDown={handleKeyDown}
+                              placeholder="Search..."
+                              className="h-10 w-full bg-transparent text-sm text-cc-text outline-none"
+                           />
+                           {loading && (
+                              <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-cc-primary border-r-transparent" />
+                           )}
                         </div>
-                        {(renderExtraFooter || onCreateNew) && (
-                            <div
-                                className={`border-t border-cc-overlay/10 p-1.5 bg-cc-surface ${focusedIndex === filtered.length ? 'bg-cc-overlay/10' : ''
-                                    }`}
-                                onMouseEnter={() => setFocusedIndex(filtered.length)}
-                            >
-                                {renderExtraFooter ? (
-                                    typeof renderExtraFooter === 'function' ? (
-                                        renderExtraFooter(handleClose)
-                                    ) : (
-                                        renderExtraFooter
-                                    )
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            handleClose()
-                                            onCreateNew?.()
-                                        }}
-                                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-cc-primary/15 px-3 py-2 text-xs font-bold text-cc-primary transition-colors hover:bg-cc-primary/25 cursor-pointer"
-                                    >
-                                        <AddRounded size={16} strokeWidth={2.5} />
-                                        {createNewText || 'Create New'}
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        )
+                     </div>
+                  )}
+                  <div
+                     ref={listRef}
+                     className="overflow-y-auto p-1.5 customScrollbar"
+                     style={{ maxHeight: menuMaxHeight }}>
+                     {filtered.length === 0 ? (
+                        <div className="px-4 py-6 text-center text-sm text-cc-muted">
+                           No results found
+                        </div>
+                     ) : (
+                        filtered.map((item, idx) => {
+                           const checked = selectedValues.some(
+                              (v) => String(v) === String(item.value),
+                           );
+                           const isFocused = idx === focusedIndex;
+                           const isGroupHeader =
+                              groupBy &&
+                              (idx === 0 ||
+                                 item[groupBy] !== filtered[idx - 1][groupBy]);
 
-        return (
-            <div ref={triggerRef} className={`relative ${className}`} {...filterDomProps(props)}>
-                {name && selectedValues.map((v, i) => (
-                    <input key={i} type="hidden" name={name} value={v} disabled={disabled} />
-                ))}
-                <button
-                    type="button"
-                    disabled={disabled}
-                    onKeyDown={handleKeyDown}
-                    onClick={() => {
-                        if (disabled) return
-                        if (!open) updatePosition()
-                        setOpen((v) => !v)
-                    }}
-                    className={`flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl border border-cc-overlay/10 bg-cc-surface ${sizeClass.split(' ').slice(1).join(' ')} py-2 text-left text-sm font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${open ? 'border-cc-primary/50 ring-4 ring-cc-primary/10' : 'hover:border-cc-primary/30'
-                        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                    <div className="flex flex-wrap items-center gap-1.5 min-w-0 flex-1">
-                        {tagDisplay && selectedItems.length > 0 ? (
-                            selectedItems.map((item) => (
-                                <span
-                                    key={String(item.value)}
-                                    className="inline-flex items-center gap-1 rounded-md bg-cc-primary/10 px-2 py-0.5 text-xs font-medium text-cc-primary"
-                                >
-                                    <span>{item.label}</span>
-                                    <span
-                                        role="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            toggle(item.value)
-                                        }}
-                                        className="hover:opacity-75 cursor-pointer"
-                                    >
-                                        ×
+                           return (
+                              <React.Fragment key={String(item.value)}>
+                                 {isGroupHeader && item[groupBy] && (
+                                    <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-cc-muted select-none">
+                                       {item[groupBy]}
+                                    </div>
+                                 )}
+                                 <button
+                                    type="button"
+                                    onMouseEnter={() => setFocusedIndex(idx)}
+                                    onClick={() => toggle(item.value)}
+                                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm ${
+                                       checked
+                                          ? 'bg-cc-primary/10 text-cc-primary'
+                                          : isFocused
+                                            ? 'bg-cc-overlay/10 text-cc-text'
+                                            : 'text-cc-text hover:bg-cc-overlay/10 hover:text-cc-text'
+                                    }`}>
+                                    <span className="truncate">
+                                       {item.label ?? item.value}
                                     </span>
-                                </span>
-                            ))
+                                    <span
+                                       className={`h-5 w-5 rounded-md border flex items-center justify-center ${
+                                          checked
+                                             ? 'border-cc-primary bg-cc-primary text-cc-on-primary'
+                                             : 'border-cc-overlay/15'
+                                       }`}>
+                                       {checked ? '✓' : ''}
+                                    </span>
+                                 </button>
+                              </React.Fragment>
+                           );
+                        })
+                     )}
+                  </div>
+                  {(renderExtraFooter || onCreateNew) && (
+                     <div
+                        className={`border-t border-cc-overlay/10 p-1.5 bg-cc-surface ${
+                           focusedIndex === filtered.length
+                              ? 'bg-cc-overlay/10'
+                              : ''
+                        }`}
+                        onMouseEnter={() => setFocusedIndex(filtered.length)}>
+                        {renderExtraFooter ? (
+                           typeof renderExtraFooter === 'function' ? (
+                              renderExtraFooter(handleClose)
+                           ) : (
+                              renderExtraFooter
+                           )
                         ) : (
-                            <span className={labels.length ? 'truncate text-cc-text' : 'truncate text-cc-muted'}>
-                                {labels.length ? labels.join(', ') : placeholder}
-                            </span>
+                           <button
+                              type="button"
+                              onClick={(e) => {
+                                 e.stopPropagation();
+                                 handleClose();
+                                 onCreateNew?.();
+                              }}
+                              className="flex w-full items-center justify-center gap-2 rounded-xl bg-cc-primary/15 px-3 py-2 text-xs font-bold text-cc-primary transition-colors hover:bg-cc-primary/25 cursor-pointer">
+                              <AddRounded size={16} strokeWidth={2.5} />
+                              {createNewText || 'Create New'}
+                           </button>
                         )}
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                        {loading && (
-                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-cc-primary border-r-transparent mr-1" />
-                        )}
-                        <KeyboardArrowDownRounded
-                            size={20}
-                            strokeWidth={2}
-                            className={`shrink-0 text-cc-muted transition-transform ${open ? 'rotate-180 text-cc-primary' : ''}`}
-                        />
-                    </div>
-                </button>
-                <ThemedPortal>{menuContent}</ThemedPortal>
-            </div>
-        )
-    }
-)
+                     </div>
+                  )}
+               </motion.div>
+            )}
+         </AnimatePresence>
+      );
 
-export const TagPicker = CheckPicker
+      const checkPickerMinHeights = {
+         sm: 'min-h-[32px]',
+         md: 'min-h-[44px]',
+         lg: 'min-h-[48px]',
+         small: 'min-h-[32px]',
+         medium: 'min-h-[44px]',
+         large: 'min-h-[48px]',
+      };
+      const minHeightClass =
+         checkPickerMinHeights[
+            typeof size === 'string' ? size.toLowerCase() : size
+         ] || 'min-h-[44px]';
+
+      return (
+         <div
+            ref={triggerRef}
+            className={`relative ${className}`}
+            {...filterDomProps(props)}>
+            {name &&
+               selectedValues.map((v, i) => (
+                  <input
+                     key={i}
+                     type="hidden"
+                     name={name}
+                     value={v}
+                     disabled={disabled}
+                  />
+               ))}
+            <button
+               type="button"
+               disabled={disabled}
+               onKeyDown={handleKeyDown}
+               onClick={() => {
+                  if (disabled) return;
+                  if (!open) updatePosition();
+                  setOpen((v) => !v);
+               }}
+               className={`flex ${minHeightClass} w-full items-center justify-between gap-2 rounded-xl border border-cc-overlay/10 bg-cc-surface ${sizeClass.split(' ').slice(1).join(' ')} py-2 text-left text-sm font-normal transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cc-primary/15 ${
+                  open
+                     ? 'border-cc-primary/50 ring-4 ring-cc-primary/10'
+                     : 'hover:border-cc-primary/30'
+               } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+               <div className="flex flex-wrap items-center gap-1.5 min-w-0 flex-1">
+                  {tagDisplay && selectedItems.length > 0 ? (
+                     selectedItems.map((item) => (
+                        <span
+                           key={String(item.value)}
+                           className="inline-flex items-center gap-1 rounded-md bg-cc-primary/10 px-2 py-0.5 text-xs font-medium text-cc-primary">
+                           <span>{item.label}</span>
+                           <span
+                              role="button"
+                              onClick={(e) => {
+                                 e.stopPropagation();
+                                 toggle(item.value);
+                              }}
+                              className="hover:opacity-75 cursor-pointer">
+                              ×
+                           </span>
+                        </span>
+                     ))
+                  ) : (
+                     <span
+                        className={
+                           labels.length
+                              ? 'truncate text-cc-text'
+                              : 'truncate text-cc-muted'
+                        }>
+                        {labels.length ? labels.join(', ') : placeholder}
+                     </span>
+                  )}
+               </div>
+               <div className="flex items-center gap-1 shrink-0">
+                  {loading && (
+                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-cc-primary border-r-transparent mr-1" />
+                  )}
+                  <KeyboardArrowDownRounded
+                     size={20}
+                     strokeWidth={2}
+                     className={`shrink-0 text-cc-muted transition-transform ${open ? 'rotate-180 text-cc-primary' : ''}`}
+                  />
+               </div>
+            </button>
+            <ThemedPortal>{menuContent}</ThemedPortal>
+         </div>
+      );
+   },
+);
+
+export const TagPicker = CheckPicker;
 
 export const Toggle = ({
-    checked: controlledChecked,
-    defaultChecked = false,
-    onChange,
-    checkedChildren,
-    unCheckedChildren,
-    disabled = false,
-    size = 'md',
-    name,
-    className = ''
+   checked: controlledChecked,
+   defaultChecked = false,
+   onChange,
+   checkedChildren,
+   unCheckedChildren,
+   disabled = false,
+   size = 'md',
+   name,
+   className = '',
 }) => {
-    const isControlled = controlledChecked !== undefined
-    const [innerChecked, setInnerChecked] = useState(defaultChecked)
-    const checked = isControlled ? controlledChecked : innerChecked
+   const isControlled = controlledChecked !== undefined;
+   const [innerChecked, setInnerChecked] = useState(defaultChecked);
+   const checked = isControlled ? controlledChecked : innerChecked;
 
-    const handleToggle = () => {
-        if (disabled) return
-        const next = !checked
-        if (!isControlled) setInnerChecked(next)
-        onChange?.(next)
-    }
+   const handleToggle = () => {
+      if (disabled) return;
+      const next = !checked;
+      if (!isControlled) setInnerChecked(next);
+      onChange?.(next);
+   };
 
-    return (
-        <>
-            {name && <input type="hidden" name={name} value={checked ? 'on' : ''} disabled={disabled} />}
-            <button
-                type="button"
-                role="switch"
-                aria-checked={checked}
-                disabled={disabled}
-                onClick={handleToggle}
-                className={`relative inline-flex items-center shrink-0 rounded-full border transition-all duration-300 focus:outline-none ${size === 'lg' ? 'h-8 w-16 p-1' : 'h-6 w-12 p-0.5'
-                    } ${checked
-                        ? 'border-cc-primary bg-cc-primary text-cc-on-primary shadow-md shadow-cc-primary/20'
-                        : 'border-cc-overlay/15 bg-cc-surface text-cc-muted hover:border-cc-overlay/25'
-                    } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
-            >
-                <span
-                    className={`rounded-full shadow-md transition-all duration-300 ease-out transform ${size === 'lg' ? 'h-6 w-6' : 'h-5 w-5'
-                        } ${checked
-                            ? size === 'lg'
-                                ? 'translate-x-8 bg-cc-on-primary'
-                                : 'translate-x-6 bg-cc-on-primary'
-                            : 'translate-x-0.5 bg-cc-muted'
-                        }`}
-                />
-                {(checkedChildren || unCheckedChildren) && (
-                    <span
-                        className={`absolute inset-0 flex items-center ${checked ? 'justify-start pl-2 text-cc-primary' : 'justify-end pr-2 text-cc-muted'
-                            } text-[9px] font-bold pointer-events-none select-none transition-opacity duration-200`}
-                    >
-                        {checked ? checkedChildren : unCheckedChildren}
-                    </span>
-                )}
-            </button>
-        </>
-    )
-}
+   const normSize = typeof size === 'string' ? size.toLowerCase() : size;
+   const isLg = normSize === 'lg' || normSize === 'large';
+
+   return (
+      <>
+         {name && (
+            <input
+               type="hidden"
+               name={name}
+               value={checked ? 'on' : ''}
+               disabled={disabled}
+            />
+         )}
+         <button
+            type="button"
+            role="switch"
+            aria-checked={checked}
+            disabled={disabled}
+            onClick={handleToggle}
+            className={`relative inline-flex items-center shrink-0 rounded-full border transition-all duration-300 focus:outline-none ${
+               isLg ? 'h-8 w-16 p-1' : 'h-6 w-12 p-0.5'
+            } ${
+               checked
+                  ? 'border-cc-primary bg-cc-primary text-cc-on-primary shadow-md shadow-cc-primary/20'
+                  : 'border-cc-overlay/15 bg-cc-surface text-cc-muted hover:border-cc-overlay/25'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}>
+            <span
+               className={`rounded-full shadow-md transition-all duration-300 ease-out transform ${
+                  isLg ? 'h-6 w-6' : 'h-5 w-5'
+               } ${
+                  checked
+                     ? isLg
+                        ? 'translate-x-8 bg-cc-on-primary'
+                        : 'translate-x-6 bg-cc-on-primary'
+                     : 'translate-x-0.5 bg-cc-muted'
+               }`}
+            />
+            {(checkedChildren || unCheckedChildren) && (
+               <span
+                  className={`absolute inset-0 flex items-center ${
+                     checked
+                        ? 'justify-start pl-2 text-cc-primary'
+                        : 'justify-end pr-2 text-cc-muted'
+                  } text-[9px] font-bold pointer-events-none select-none transition-opacity duration-200`}>
+                  {checked ? checkedChildren : unCheckedChildren}
+               </span>
+            )}
+         </button>
+      </>
+   );
+};
 
 export const Checkbox = ({
-    checked: controlledChecked,
-    defaultChecked = false,
-    onChange,
-    children,
-    disabled = false,
-    name,
-    value,
-    className = ''
+   checked: controlledChecked,
+   defaultChecked = false,
+   onChange,
+   children,
+   disabled = false,
+   name,
+   value,
+   className = '',
 }) => {
-    const isControlled = controlledChecked !== undefined
-    const [innerChecked, setInnerChecked] = useState(defaultChecked)
-    const checked = isControlled ? controlledChecked : innerChecked
+   const isControlled = controlledChecked !== undefined;
+   const [innerChecked, setInnerChecked] = useState(defaultChecked);
+   const checked = isControlled ? controlledChecked : innerChecked;
 
-    const handleChange = (e) => {
-        if (disabled) return
-        const next = e.target.checked
-        if (!isControlled) setInnerChecked(next)
-        onChange?.(next, e)
-    }
+   const handleChange = (e) => {
+      if (disabled) return;
+      const next = e.target.checked;
+      if (!isControlled) setInnerChecked(next);
+      onChange?.(next, e);
+   };
 
-    return (
-        <label
-            className={`inline-flex items-center gap-2 cursor-pointer text-sm text-cc-text ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
-        >
-            <input
-                type="checkbox"
-                name={name}
-                value={value}
-                checked={!!checked}
-                disabled={disabled}
-                onChange={handleChange}
-                className="h-4 w-4 accent-cc-primary"
-            />
-            {children}
-        </label>
-    )
-}
+   return (
+      <label
+         className={`inline-flex items-center gap-2 cursor-pointer text-sm text-cc-text ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}>
+         <input
+            type="checkbox"
+            name={name}
+            value={value}
+            checked={!!checked}
+            disabled={disabled}
+            onChange={handleChange}
+            className="h-4 w-4 accent-cc-primary"
+         />
+         {children}
+      </label>
+   );
+};
 
 export const Uploader = ({
-    onChange,
-    onDragEnter,
-    onDragLeave,
-    onDrop,
-    disabled = false,
-    accept,
-    children,
-    className = '',
-    draggable = true,
-    autoUpload = false,
-    ...props
+   onChange,
+   onDragEnter,
+   onDragLeave,
+   onDrop,
+   disabled = false,
+   accept,
+   children,
+   className = '',
+   draggable = true,
+   autoUpload = false,
+   ...props
 }) => {
-    const fileInputRef = useRef(null)
+   const fileInputRef = useRef(null);
 
-    const handleFiles = (files) => {
-        if (!files || files.length === 0) return
-        const fileList = Array.from(files).map((file) => ({
-            blobFile: file,
-            name: file.name
-        }))
-        onChange?.(fileList)
-    }
+   const handleFiles = (files) => {
+      if (!files || files.length === 0) return;
+      const fileList = Array.from(files).map((file) => ({
+         blobFile: file,
+         name: file.name,
+      }));
+      onChange?.(fileList);
+   };
 
-    const handleDragOver = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-    }
+   const handleDragOver = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+   };
 
-    const handleDragEnter = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        onDragEnter?.(e)
-    }
+   const handleDragEnter = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onDragEnter?.(e);
+   };
 
-    const handleDragLeave = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        onDragLeave?.(e)
-    }
+   const handleDragLeave = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onDragLeave?.(e);
+   };
 
-    const handleDrop = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        onDrop?.(e)
-        if (!disabled && e.dataTransfer && e.dataTransfer.files) {
-            handleFiles(e.dataTransfer.files)
-        }
-    }
+   const handleDrop = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onDrop?.(e);
+      if (!disabled && e.dataTransfer && e.dataTransfer.files) {
+         handleFiles(e.dataTransfer.files);
+      }
+   };
 
-    return (
-        <div
-            className={`relative ${className}`}
-            onDragOver={draggable ? handleDragOver : undefined}
-            onDragEnter={draggable ? handleDragEnter : undefined}
-            onDragLeave={draggable ? handleDragLeave : undefined}
-            onDrop={draggable ? handleDrop : undefined}
-            onClick={() => {
-                if (!disabled && fileInputRef.current) {
-                    fileInputRef.current.click()
-                }
+   return (
+      <div
+         className={`relative ${className}`}
+         onDragOver={draggable ? handleDragOver : undefined}
+         onDragEnter={draggable ? handleDragEnter : undefined}
+         onDragLeave={draggable ? handleDragLeave : undefined}
+         onDrop={draggable ? handleDrop : undefined}
+         onClick={() => {
+            if (!disabled && fileInputRef.current) {
+               fileInputRef.current.click();
+            }
+         }}>
+         <input
+            ref={fileInputRef}
+            type="file"
+            accept={accept}
+            className="hidden"
+            disabled={disabled}
+            onChange={(e) => {
+               if (e.target.files) {
+                  handleFiles(e.target.files);
+                  e.target.value = '';
+               }
             }}
-        >
-            <input
-                ref={fileInputRef}
-                type="file"
-                accept={accept}
-                className="hidden"
-                disabled={disabled}
-                onChange={(e) => {
-                    if (e.target.files) {
-                        handleFiles(e.target.files)
-                        e.target.value = ''
-                    }
-                }}
-            />
-            {children}
-        </div>
-    )
-}
+         />
+         {children}
+      </div>
+   );
+};
 
 export const Animation = {
-    Collapse: ({ in: isIn, children }) => (
-        <AnimatePresence initial={false}>
-            {isIn && (
-                <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    style={{ overflow: 'hidden' }}
-                >
-                    {children}
-                </motion.div>
-            )}
-        </AnimatePresence>
-    ),
-    Bounce: ({ in: isIn = true, children, className = '' }) => (
-        <AnimatePresence>
-            {isIn && (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    className={className}
-                >
-                    {children}
-                </motion.div>
-            )}
-        </AnimatePresence>
-    ),
-    Fade: ({ in: isIn = true, children, className = '' }) => (
-        <AnimatePresence>
-            {isIn && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className={className}
-                >
-                    {children}
-                </motion.div>
-            )}
-        </AnimatePresence>
-    )
-}
+   Collapse: ({ in: isIn, children }) => (
+      <AnimatePresence initial={false}>
+         {isIn && (
+            <motion.div
+               initial={{ height: 0, opacity: 0 }}
+               animate={{ height: 'auto', opacity: 1 }}
+               exit={{ height: 0, opacity: 0 }}
+               style={{ overflow: 'hidden' }}>
+               {children}
+            </motion.div>
+         )}
+      </AnimatePresence>
+   ),
+   Bounce: ({ in: isIn = true, children, className = '' }) => (
+      <AnimatePresence>
+         {isIn && (
+            <motion.div
+               initial={{ opacity: 0, scale: 0.95, y: -10 }}
+               animate={{ opacity: 1, scale: 1, y: 0 }}
+               exit={{ opacity: 0, scale: 0.95, y: -10 }}
+               className={className}>
+               {children}
+            </motion.div>
+         )}
+      </AnimatePresence>
+   ),
+   Fade: ({ in: isIn = true, children, className = '' }) => (
+      <AnimatePresence>
+         {isIn && (
+            <motion.div
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className={className}>
+               {children}
+            </motion.div>
+         )}
+      </AnimatePresence>
+   ),
+};
 
 /* ===================== ADDITIONAL CONTROLS ===================== */
 
 /* Shared field styling so every text based control matches. */
 
-
-
-
 export const Textarea = forwardRef(
-    (
-        {
-            value: controlledValue,
-            defaultValue,
-            onChange,
-            rows = 4,
-            placeholder,
-            className = '',
-            disabled = false,
-            resize = true,
-            maxLength,
-            showCount = false,
-            name,
-            ...props
-        },
-        ref
-    ) => {
-        const isControlled = controlledValue !== undefined
-        const [innerValue, setInnerValue] = useState(defaultValue ?? '')
-        const text = isControlled ? (controlledValue ?? '') : innerValue
+   (
+      {
+         value: controlledValue,
+         defaultValue,
+         onChange,
+         rows = 4,
+         placeholder,
+         className = '',
+         disabled = false,
+         resize = true,
+         maxLength,
+         showCount = false,
+         name,
+         ...props
+      },
+      ref,
+   ) => {
+      const isControlled = controlledValue !== undefined;
+      const [innerValue, setInnerValue] = useState(defaultValue ?? '');
+      const text = isControlled ? (controlledValue ?? '') : innerValue;
 
-        return (
-            <div className={`relative w-full ${className}`}>
-                <textarea
-                    {...filterDomProps(props)}
-                    ref={ref}
-                    name={name}
-                    rows={rows}
-                    value={text}
-                    maxLength={maxLength}
-                    disabled={disabled}
-                    placeholder={placeholder}
-                    onChange={(e) => {
-                        if (!isControlled) setInnerValue(e.target.value)
-                        onChange?.(e.target.value, e)
-                    }}
-                    className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 py-3 text-sm font-normal leading-relaxed text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${resize ? 'resize-y' : 'resize-none'
-                        } ${showCount ? 'pb-7' : ''}`}
-                />
-                {showCount && (
-                    <span className="pointer-events-none absolute bottom-2 right-3 text-[11px] font-medium text-cc-subtle">
-                        {String(text).length}
-                        {maxLength ? ` / ${maxLength}` : ''}
-                    </span>
-                )}
-            </div>
-        )
-    }
-)
-
-
+      return (
+         <div className={`relative w-full ${className}`}>
+            <textarea
+               {...filterDomProps(props)}
+               ref={ref}
+               name={name}
+               rows={rows}
+               value={text}
+               maxLength={maxLength}
+               disabled={disabled}
+               placeholder={placeholder}
+               onChange={(e) => {
+                  if (!isControlled) setInnerValue(e.target.value);
+                  onChange?.(e.target.value, e);
+               }}
+               className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 py-3 text-sm font-normal leading-relaxed text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${
+                  resize ? 'resize-y' : 'resize-none'
+               } ${showCount ? 'pb-7' : ''}`}
+            />
+            {showCount && (
+               <span className="pointer-events-none absolute bottom-2 right-3 text-[11px] font-medium text-cc-subtle">
+                  {String(text).length}
+                  {maxLength ? ` / ${maxLength}` : ''}
+               </span>
+            )}
+         </div>
+      );
+   },
+);
 
 export const PasswordInput = forwardRef(
-    (
-        {
-            value: controlledValue,
-            defaultValue,
-            onChange,
-            placeholder = 'Password',
-            className = '',
-            disabled = false,
-            visible: visibleProp,
-            onVisibleChange,
-            showToggle = true,
-            size = 'md',
-            name,
-            ...props
-        },
-        ref
-    ) => {
-        const isControlled = controlledValue !== undefined
-        const [innerValue, setInnerValue] = useState(defaultValue ?? '')
-        const currentValue = isControlled ? (controlledValue ?? '') : innerValue
+   (
+      {
+         value: controlledValue,
+         defaultValue,
+         onChange,
+         placeholder = 'Password',
+         className = '',
+         disabled = false,
+         visible: visibleProp,
+         onVisibleChange,
+         showToggle = true,
+         size = 'md',
+         name,
+         ...props
+      },
+      ref,
+   ) => {
+      const isControlled = controlledValue !== undefined;
+      const [innerValue, setInnerValue] = useState(defaultValue ?? '');
+      const currentValue = isControlled ? (controlledValue ?? '') : innerValue;
 
-        const [innerVisible, setInnerVisible] = useState(false)
-        const isVisibleControlled = visibleProp !== undefined
-        const visible = isVisibleControlled ? visibleProp : innerVisible
+      const [innerVisible, setInnerVisible] = useState(false);
+      const isVisibleControlled = visibleProp !== undefined;
+      const visible = isVisibleControlled ? visibleProp : innerVisible;
 
-        const toggle = () => {
-            if (!isVisibleControlled) setInnerVisible((v) => !v)
-            onVisibleChange?.(!visible)
-        }
+      const toggle = () => {
+         if (!isVisibleControlled) setInnerVisible((v) => !v);
+         onVisibleChange?.(!visible);
+      };
 
-        const sizeClass = controlSizes[size] || controlSizes.md
+      const sizeClass = getControlSizeClass(size);
 
-        return (
-            <div className={`relative flex w-full items-center ${className}`}>
-                <input
-                    {...filterDomProps(props)}
-                    ref={ref}
-                    type={visible ? 'text' : 'password'}
-                    name={name}
-                    value={currentValue}
-                    disabled={disabled}
-                    placeholder={placeholder}
-                    onChange={(e) => {
-                        if (!isControlled) setInnerValue(e.target.value)
-                        onChange?.(e.target.value, e)
-                    }}
-                    className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 text-sm font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${sizeClass} pr-11`}
-                />
-                {showToggle && (
-                    <button
-                        type="button"
-                        tabIndex={-1}
-                        disabled={disabled}
-                        onClick={toggle}
-                        aria-label={visible ? 'Hide password' : 'Show password'}
-                        className="absolute right-1.5 flex h-8 w-8 items-center justify-center rounded-xl text-cc-muted transition-colors hover:bg-cc-overlay/10 hover:text-cc-text"
-                    >
-                        {visible ? <EyeOffRoundedIcon size={17} /> : <EyeRoundedIcon size={17} />}
-                    </button>
-                )}
-            </div>
-        )
-    }
-)
+      return (
+         <div className={`relative flex w-full items-center ${className}`}>
+            <input
+               {...filterDomProps(props)}
+               ref={ref}
+               type={visible ? 'text' : 'password'}
+               name={name}
+               value={currentValue}
+               disabled={disabled}
+               placeholder={placeholder}
+               onChange={(e) => {
+                  if (!isControlled) setInnerValue(e.target.value);
+                  onChange?.(e.target.value, e);
+               }}
+               className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 text-sm font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${sizeClass} pr-11`}
+            />
+            {showToggle && (
+               <button
+                  type="button"
+                  tabIndex={-1}
+                  disabled={disabled}
+                  onClick={toggle}
+                  aria-label={visible ? 'Hide password' : 'Show password'}
+                  className="absolute right-1.5 flex h-8 w-8 items-center justify-center rounded-xl text-cc-muted transition-colors hover:bg-cc-overlay/10 hover:text-cc-text">
+                  {visible ? (
+                     <EyeOffRoundedIcon size={17} />
+                  ) : (
+                     <EyeRoundedIcon size={17} />
+                  )}
+               </button>
+            )}
+         </div>
+      );
+   },
+);
 
 export const SearchInput = forwardRef(
-    (
-        {
-            value: controlledValue,
-            defaultValue,
-            onChange,
-            onClear,
-            placeholder = 'Search...',
-            className = '',
-            disabled = false,
-            cleanable = true,
-            size = 'md',
-            name,
-            ...props
-        },
-        ref
-    ) => {
-        const isControlled = controlledValue !== undefined
-        const [innerValue, setInnerValue] = useState(defaultValue ?? '')
-        const text = isControlled ? (controlledValue ?? '') : innerValue
-        const sizeClass = controlSizes[size] || controlSizes.md
+   (
+      {
+         value: controlledValue,
+         defaultValue,
+         onChange,
+         onClear,
+         placeholder = 'Search...',
+         className = '',
+         disabled = false,
+         cleanable = true,
+         size = 'md',
+         name,
+         ...props
+      },
+      ref,
+   ) => {
+      const isControlled = controlledValue !== undefined;
+      const [innerValue, setInnerValue] = useState(defaultValue ?? '');
+      const text = isControlled ? (controlledValue ?? '') : innerValue;
+      const sizeClass = getControlSizeClass(size);
 
-        const handleClear = () => {
-            if (!isControlled) setInnerValue('')
-            onChange?.('', null)
-            onClear?.()
-        }
+      const handleClear = () => {
+         if (!isControlled) setInnerValue('');
+         onChange?.('', null);
+         onClear?.();
+      };
 
-        return (
-            <div className={`relative flex w-full items-center ${className}`}>
-                <SearchRoundedIcon
-                    size={17}
-                    className="pointer-events-none absolute left-3.5 text-cc-muted"
-                />
-                <input
-                    {...filterDomProps(props)}
-                    ref={ref}
-                    type="text"
-                    name={name}
-                    value={text}
-                    disabled={disabled}
-                    placeholder={placeholder}
-                    onChange={(e) => {
-                        if (!isControlled) setInnerValue(e.target.value)
-                        onChange?.(e.target.value, e)
-                    }}
-                    className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 text-sm font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${sizeClass} pl-10 ${cleanable && text ? 'pr-10' : ''}`}
-                />
-                {cleanable && text && (
-                    <button
-                        type="button"
-                        aria-label="Clear search"
-                        onClick={handleClear}
-                        className="absolute right-1.5 flex h-8 w-8 items-center justify-center rounded-xl text-cc-muted transition-colors hover:bg-cc-overlay/10 hover:text-cc-text"
-                    >
-                        <CloseRounded size={15} />
-                    </button>
-                )}
-            </div>
-        )
-    }
-)
-
-
+      return (
+         <div className={`relative flex w-full items-center ${className}`}>
+            <SearchRoundedIcon
+               size={17}
+               className="pointer-events-none absolute left-3.5 text-cc-muted"
+            />
+            <input
+               {...filterDomProps(props)}
+               ref={ref}
+               type="text"
+               name={name}
+               value={text}
+               disabled={disabled}
+               placeholder={placeholder}
+               onChange={(e) => {
+                  if (!isControlled) setInnerValue(e.target.value);
+                  onChange?.(e.target.value, e);
+               }}
+               className={`w-full rounded-xl border border-cc-overlay/10 bg-cc-surface px-4 text-sm font-normal text-cc-text outline-none transition-all placeholder:text-cc-subtle focus:border-cc-primary/50 focus:ring-4 focus:ring-cc-primary/10 disabled:cursor-not-allowed disabled:opacity-50 ${sizeClass} pl-10 ${cleanable && text ? 'pr-10' : ''}`}
+            />
+            {cleanable && text && (
+               <button
+                  type="button"
+                  aria-label="Clear search"
+                  onClick={handleClear}
+                  className="absolute right-1.5 flex h-8 w-8 items-center justify-center rounded-xl text-cc-muted transition-colors hover:bg-cc-overlay/10 hover:text-cc-text">
+                  <CloseRounded size={15} />
+               </button>
+            )}
+         </div>
+      );
+   },
+);
 
 export const Radio = ({
+   checked = false,
 
-    checked = false,
+   onChange,
 
-    onChange,
+   value,
 
-    value,
+   name,
 
-    name,
+   disabled = false,
 
-    disabled = false,
+   children,
 
-    children,
-
-    className = ''
-
+   className = '',
 }) => (
+   <label
+      className={`inline-flex items-center gap-2.5 text-sm text-cc-text ${
+         disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+      } ${className}`}>
+      <span className="relative flex h-4 w-4 shrink-0 items-center justify-center">
+         <input
+            type="radio"
+            name={name}
+            value={value}
+            checked={!!checked}
+            disabled={disabled}
+            onChange={() => onChange?.(value)}
+            className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+         />
 
-    <label
+         <span
+            className={`pointer-events-none flex h-4 w-4 items-center justify-center rounded-full border transition-all peer-focus-visible:ring-4 peer-focus-visible:ring-cc-primary/20 ${
+               checked ? 'border-cc-primary' : 'border-cc-overlay/30'
+            }`}>
+            {checked && <span className="h-2 w-2 rounded-full bg-cc-primary" />}
+         </span>
+      </span>
 
-        className={`inline-flex items-center gap-2.5 text-sm text-cc-text ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
-
-            } ${className}`}
-
-    >
-
-        <span className="relative flex h-4 w-4 shrink-0 items-center justify-center">
-
-            <input
-
-                type="radio"
-
-                name={name}
-
-                value={value}
-
-                checked={!!checked}
-
-                disabled={disabled}
-
-                onChange={() => onChange?.(value)}
-
-                className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
-
-            />
-
-            <span
-
-                className={`pointer-events-none flex h-4 w-4 items-center justify-center rounded-full border transition-all peer-focus-visible:ring-4 peer-focus-visible:ring-cc-primary/20 ${checked ? 'border-cc-primary' : 'border-cc-overlay/30'
-
-                    }`}
-
-            >
-
-                {checked && <span className="h-2 w-2 rounded-full bg-cc-primary" />}
-
-            </span>
-
-        </span>
-
-        {children}
-
-    </label>
-
-)
-
-
+      {children}
+   </label>
+);
 
 export const RadioGroup = ({
+   value,
 
-    value,
+   onChange,
 
-    onChange,
+   name,
 
-    name,
+   direction = 'vertical',
 
-    direction = 'vertical',
+   disabled = false,
 
-    disabled = false,
+   children,
 
-    children,
-
-    className = ''
-
+   className = '',
 }) => {
+   const generatedName = React.useId ? React.useId() : undefined;
 
-    const generatedName = React.useId ? React.useId() : undefined
+   const groupName = name || `cc-radio-${generatedName ?? ''}`;
 
-    const groupName = name || `cc-radio-${generatedName ?? ''}`
+   return (
+      <div
+         role="radiogroup"
+         className={`flex ${
+            direction === 'horizontal'
+               ? 'flex-row flex-wrap gap-x-5 gap-y-2'
+               : 'flex-col gap-2.5'
+         } ${className}`}>
+         {React.Children.map(children, (child) => {
+            if (!React.isValidElement(child)) return child;
 
+            return React.cloneElement(child, {
+               name: groupName,
 
+               disabled: disabled || child.props.disabled,
 
-    return (
+               checked: String(child.props.value) === String(value),
 
-        <div
-
-            role="radiogroup"
-
-            className={`flex ${direction === 'horizontal'
-
-                ? 'flex-row flex-wrap gap-x-5 gap-y-2'
-
-                : 'flex-col gap-2.5'
-
-                } ${className}`}
-
-        >
-
-            {React.Children.map(children, (child) => {
-
-                if (!React.isValidElement(child)) return child
-
-                return React.cloneElement(child, {
-
-                    name: groupName,
-
-                    disabled: disabled || child.props.disabled,
-
-                    checked: String(child.props.value) === String(value),
-
-                    onChange
-
-                })
-
-            })}
-
-        </div>
-
-    )
-
-}
-
-
+               onChange,
+            });
+         })}
+      </div>
+   );
+};
 
 export const Slider = forwardRef(
+   (
+      {
+         value,
 
-    (
+         defaultValue = 0,
 
-        {
+         onChange,
 
-            value,
+         min = 0,
 
-            defaultValue = 0,
+         max = 100,
 
-            onChange,
+         step = 1,
 
-            min = 0,
+         disabled = false,
 
-            max = 100,
+         showValue = true,
 
-            step = 1,
+         formatValue,
 
-            disabled = false,
+         className = '',
 
-            showValue = true,
+         inputClassName = '',
 
-            formatValue,
+         style,
 
-            className = '',
+         ...props
+      },
 
-            inputClassName = '',
+      ref,
+   ) => {
+      const [innerValue, setInnerValue] = useState(defaultValue);
 
-            style,
+      const isControlled = value !== undefined;
 
-            ...props
+      const current = isControlled ? value : innerValue;
 
-        },
+      const numeric = Math.min(max, Math.max(min, Number(current) || 0));
 
-        ref
+      const percent = max === min ? 0 : ((numeric - min) / (max - min)) * 100;
 
-    ) => {
+      const label = formatValue ? formatValue(numeric) : numeric;
 
-        const [innerValue, setInnerValue] = useState(defaultValue)
+      return (
+         <div className={`flex w-full items-center gap-3 ${className}`}>
+            <input
+               {...props}
+               ref={ref}
+               type="range"
+               min={min}
+               max={max}
+               step={step}
+               value={numeric}
+               disabled={disabled}
+               onChange={(e) => {
+                  const next = Number(e.target.value);
 
-        const isControlled = value !== undefined
+                  if (!isControlled) setInnerValue(next);
 
-        const current = isControlled ? value : innerValue
+                  onChange?.(next, e);
+               }}
+               className={`cc-slider h-1.5 w-full cursor-pointer rounded-full disabled:cursor-not-allowed disabled:opacity-50 ${inputClassName}`}
+               style={{
+                  ...style,
 
-        const numeric = Math.min(max, Math.max(min, Number(current) || 0))
+                  background: `linear-gradient(to right, rgb(var(--cc-primary)) ${percent}%, rgb(var(--cc-overlay) / 0.15) ${percent}%)`,
+               }}
+            />
 
-        const percent = max === min ? 0 : ((numeric - min) / (max - min)) * 100
-
-        const label = formatValue ? formatValue(numeric) : numeric
-
-
-
-        return (
-
-            <div className={`flex w-full items-center gap-3 ${className}`}>
-
-                <input
-
-                    {...props}
-
-                    ref={ref}
-
-                    type="range"
-
-                    min={min}
-
-                    max={max}
-
-                    step={step}
-
-                    value={numeric}
-
-                    disabled={disabled}
-
-                    onChange={(e) => {
-
-                        const next = Number(e.target.value)
-
-                        if (!isControlled) setInnerValue(next)
-
-                        onChange?.(next, e)
-
-                    }}
-
-                    className={`cc-slider h-1.5 w-full cursor-pointer rounded-full disabled:cursor-not-allowed disabled:opacity-50 ${inputClassName}`}
-
-                    style={{
-
-                        ...style,
-
-                        background: `linear-gradient(to right, rgb(var(--cc-primary)) ${percent}%, rgb(var(--cc-overlay) / 0.15) ${percent}%)`
-
-                    }}
-
-                />
-
-                {showValue && (
-
-                    <span className="w-10 shrink-0 text-right text-xs font-semibold tabular-nums text-cc-muted">
-
-                        {label}
-
-                    </span>
-
-                )}
-
-            </div>
-
-        )
-
-    }
-
-)
-
-
+            {showValue && (
+               <span className="w-10 shrink-0 text-right text-xs font-semibold tabular-nums text-cc-muted">
+                  {label}
+               </span>
+            )}
+         </div>
+      );
+   },
+);
 
 export const Tooltip = ({
+   content,
 
-    content,
+   speaker,
 
-    speaker,
+   placement = 'top',
 
-    placement = 'top',
+   open,
 
-    open,
+   onOpenChange,
 
-    onOpenChange,
+   disabled = false,
 
-    disabled = false,
+   offset = 8,
 
-    offset = 8,
+   className = '',
 
-    className = '',
+   tooltipClassName = '',
 
-    tooltipClassName = '',
-
-    children
-
+   children,
 }) => {
+   const [innerOpen, setInnerOpen] = useState(false);
 
-    const [innerOpen, setInnerOpen] = useState(false)
+   const [coords, setCoords] = useState({
+      top: 0,
+      left: 0,
+      transform: 'translate(-50%, -100%)',
+   });
 
-    const [coords, setCoords] = useState({ top: 0, left: 0, transform: 'translate(-50%, -100%)' })
+   const triggerRef = useRef(null);
 
-    const triggerRef = useRef(null)
+   const isControlled = open !== undefined;
 
-    const isControlled = open !== undefined
+   const visible = !disabled && (isControlled ? open : innerOpen);
 
-    const visible = !disabled && (isControlled ? open : innerOpen)
+   const label =
+      content ??
+      (React.isValidElement(speaker) ? speaker.props.children : speaker);
 
-    const label = content ?? (React.isValidElement(speaker) ? speaker.props.children : speaker)
+   const setOpenState = (next) => {
+      if (!isControlled) setInnerOpen(next);
 
+      onOpenChange?.(next);
+   };
 
+   const updatePosition = useCallback(() => {
+      if (!triggerRef.current) return;
 
-    const setOpenState = (next) => {
+      const rect = triggerRef.current.getBoundingClientRect();
 
-        if (!isControlled) setInnerOpen(next)
+      const positions = {
+         top: {
+            top: rect.top - offset,
 
-        onOpenChange?.(next)
+            left: rect.left + rect.width / 2,
 
-    }
+            transform: 'translate(-50%, -100%)',
+         },
 
+         bottom: {
+            top: rect.bottom + offset,
 
-
-    const updatePosition = useCallback(() => {
-
-        if (!triggerRef.current) return
-
-        const rect = triggerRef.current.getBoundingClientRect()
-
-        const positions = {
-
-            top: {
-
-                top: rect.top - offset,
-
-                left: rect.left + rect.width / 2,
-
-                transform: 'translate(-50%, -100%)'
-
-            },
-
-            bottom: {
-
-                top: rect.bottom + offset,
-
-                left: rect.left + rect.width / 2,
-
-                transform: 'translate(-50%, 0)'
-
-            },
-
-            left: {
-
-                top: rect.top + rect.height / 2,
-
-                left: rect.left - offset,
-
-                transform: 'translate(-100%, -50%)'
-
-            },
-
-            right: {
-
-                top: rect.top + rect.height / 2,
-
-                left: rect.right + offset,
-
-                transform: 'translate(0, -50%)'
-
-            }
-
-        }
-
-        setCoords(positions[placement] || positions.top)
-
-    }, [offset, placement])
-
-
-
-    useIsomorphicLayoutEffect(() => {
-
-        if (!visible) return undefined
-
-        updatePosition()
-
-        window.addEventListener('resize', updatePosition)
-
-        window.addEventListener('scroll', updatePosition, true)
-
-        return () => {
-
-            window.removeEventListener('resize', updatePosition)
-
-            window.removeEventListener('scroll', updatePosition, true)
-
-        }
-
-    }, [visible, updatePosition])
-
-
-
-    return (
-
-        <>
-
-            <span
-
-                ref={triggerRef}
-
-                className={`inline-flex ${className}`}
-
-                onMouseEnter={() => setOpenState(true)}
-
-                onMouseLeave={() => setOpenState(false)}
-
-                onFocus={() => setOpenState(true)}
-
-                onBlur={() => setOpenState(false)}
-
-            >
-
-                {children}
-
-            </span>
-
-            {label ? (
-
-                <ThemedPortal>
-
-                    <AnimatePresence>
-
-                        {visible && (
-
-                            <motion.div
-
-                                role="tooltip"
-
-                                initial={{ opacity: 0, scale: 0.96 }}
-
-                                animate={{ opacity: 1, scale: 1 }}
-
-                                exit={{ opacity: 0, scale: 0.96 }}
-
-                                transition={{ duration: 0.1, ease: 'easeOut' }}
-
-                                style={{
-
-                                    position: 'fixed',
-
-                                    ...coords,
-
-                                    zIndex: 'var(--cc-z)',
-
-                                    pointerEvents: 'none'
-
-                                }}
-
-                                className={`whitespace-nowrap rounded-lg border border-cc-overlay/10 bg-cc-surface px-2.5 py-1.5 text-xs font-medium text-cc-text shadow-lg shadow-cc-scrim/30 ${tooltipClassName}`}
-
-                            >
-
-                                {label}
-
-                            </motion.div>
-
-                        )}
-
-                    </AnimatePresence>
-
-                </ThemedPortal>
-
-            ) : null}
-
-        </>
-
-    )
-
-}
-
-
-
-export const Whisper = ({ children, speaker, placement = 'top', className = '' }) => (
-    <Tooltip speaker={speaker} placement={placement} className={className}>
-        {children}
-    </Tooltip>
-)
-
-/* ===================== NEW CORE COMPONENTS (v1.2.0) ===================== */
-export { Tabs } from './Tabs.jsx'
-export { Drawer } from './Drawer.jsx'
-export { Badge, Tag, Chip } from './Badge.jsx'
-export { Pagination } from './Pagination.jsx'
-export { DropdownMenu } from './DropdownMenu.jsx'
-export { Accordion } from './Accordion.jsx'
-export { Divider } from './Divider.jsx'
-export { Rate } from './Rate.jsx'
-export { ButtonGroup } from './ButtonGroup.jsx'
-export { Avatar, AvatarGroup } from './Avatar.jsx'
-
-import { Tabs } from './Tabs.jsx'
-import { Drawer } from './Drawer.jsx'
-import { Badge, Tag, Chip } from './Badge.jsx'
-import { Pagination } from './Pagination.jsx'
-import { DropdownMenu } from './DropdownMenu.jsx'
-import { Accordion } from './Accordion.jsx'
-import { Divider } from './Divider.jsx'
-import { Rate } from './Rate.jsx'
-import { ButtonGroup } from './ButtonGroup.jsx'
-import { Avatar, AvatarGroup } from './Avatar.jsx'
+            left: rect.left + rect.width / 2,
+
+            transform: 'translate(-50%, 0)',
+         },
+
+         left: {
+            top: rect.top + rect.height / 2,
+
+            left: rect.left - offset,
+
+            transform: 'translate(-100%, -50%)',
+         },
+
+         right: {
+            top: rect.top + rect.height / 2,
+
+            left: rect.right + offset,
+
+            transform: 'translate(0, -50%)',
+         },
+      };
+
+      setCoords(positions[placement] || positions.top);
+   }, [offset, placement]);
+
+   useIsomorphicLayoutEffect(() => {
+      if (!visible) return undefined;
+
+      updatePosition();
+
+      window.addEventListener('resize', updatePosition);
+
+      window.addEventListener('scroll', updatePosition, true);
+
+      return () => {
+         window.removeEventListener('resize', updatePosition);
+
+         window.removeEventListener('scroll', updatePosition, true);
+      };
+   }, [visible, updatePosition]);
+
+   return (
+      <>
+         <span
+            ref={triggerRef}
+            className={`inline-flex ${className}`}
+            onMouseEnter={() => setOpenState(true)}
+            onMouseLeave={() => setOpenState(false)}
+            onFocus={() => setOpenState(true)}
+            onBlur={() => setOpenState(false)}>
+            {children}
+         </span>
+
+         {label ? (
+            <ThemedPortal>
+               <AnimatePresence>
+                  {visible && (
+                     <motion.div
+                        role="tooltip"
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.96 }}
+                        transition={{ duration: 0.1, ease: 'easeOut' }}
+                        style={{
+                           position: 'fixed',
+
+                           ...coords,
+
+                           zIndex: 'var(--cc-z)',
+
+                           pointerEvents: 'none',
+                        }}
+                        className={`whitespace-nowrap rounded-lg border border-cc-overlay/10 bg-cc-surface px-2.5 py-1.5 text-xs font-medium text-cc-text shadow-lg shadow-cc-scrim/30 ${tooltipClassName}`}>
+                        {label}
+                     </motion.div>
+                  )}
+               </AnimatePresence>
+            </ThemedPortal>
+         ) : null}
+      </>
+   );
+};
+
+export const Whisper = ({
+   children,
+   speaker,
+   placement = 'top',
+   className = '',
+}) => (
+   <Tooltip speaker={speaker} placement={placement} className={className}>
+      {children}
+   </Tooltip>
+);
+
+/* ===================== NEW CORE COMPONENTS (v1.2.1) ===================== */
+export { Tabs } from './Tabs.jsx';
+export { Drawer } from './Drawer.jsx';
+export { Badge, Tag, Chip } from './Badge.jsx';
+export { Pagination } from './Pagination.jsx';
+export { DropdownMenu } from './DropdownMenu.jsx';
+export { Accordion } from './Accordion.jsx';
+export { Divider } from './Divider.jsx';
+export { Rate } from './Rate.jsx';
+export { ButtonGroup } from './ButtonGroup.jsx';
+export { Avatar, AvatarGroup } from './Avatar.jsx';
+
+import { Tabs } from './Tabs.jsx';
+import { Drawer } from './Drawer.jsx';
+import { Badge, Tag, Chip } from './Badge.jsx';
+import { Pagination } from './Pagination.jsx';
+import { DropdownMenu } from './DropdownMenu.jsx';
+import { Accordion } from './Accordion.jsx';
+import { Divider } from './Divider.jsx';
+import { Rate } from './Rate.jsx';
+import { ButtonGroup } from './ButtonGroup.jsx';
+import { Avatar, AvatarGroup } from './Avatar.jsx';
 
 /* ===================== PACKAGE EXPORTS ===================== */
 
 export default {
-    Button, Label, FormField, Combobox, Autocomplete, OtpInput,
-    Alert, Toast, ToastProvider, useToast, Progress, Skeleton, ColorPicker,
-    Input, InputNumber, InputGroup, SelectPicker, CheckPicker, TagPicker,
-    DateRangePicker, DatePicker, TimePicker, Modal, Toggle, Checkbox,
-    Uploader, Animation,
-    Textarea, PasswordInput, SearchInput, Radio, RadioGroup, Slider,
-    Tooltip, Whisper,
-    Tabs, Drawer, Badge, Tag, Chip, Pagination, DropdownMenu,
-    Accordion, Divider, Rate, ButtonGroup, Avatar, AvatarGroup
-}
+   Button,
+   Label,
+   FormField,
+   Combobox,
+   Autocomplete,
+   OtpInput,
+   Alert,
+   Toast,
+   ToastProvider,
+   useToast,
+   Progress,
+   Skeleton,
+   ColorPicker,
+   Input,
+   InputNumber,
+   InputGroup,
+   SelectPicker,
+   CheckPicker,
+   TagPicker,
+   DateRangePicker,
+   DatePicker,
+   TimePicker,
+   Modal,
+   Toggle,
+   Checkbox,
+   Uploader,
+   Animation,
+   Textarea,
+   PasswordInput,
+   SearchInput,
+   Radio,
+   RadioGroup,
+   Slider,
+   Tooltip,
+   Whisper,
+   Tabs,
+   Drawer,
+   Badge,
+   Tag,
+   Chip,
+   Pagination,
+   DropdownMenu,
+   Accordion,
+   Divider,
+   Rate,
+   ButtonGroup,
+   Avatar,
+   AvatarGroup,
+};

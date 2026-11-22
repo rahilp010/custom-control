@@ -678,14 +678,24 @@ export interface AlertProps {
 }
 export declare const Alert: React.FC<AlertProps>
 
+export type ToastVariant = 'info' | 'success' | 'warning' | 'error' | 'loading'
+export type ToastEffect = 'glass' | 'colorful' | 'gradient' | 'outline' | 'default'
+
 export interface ToastProps {
-    variant?: AlertVariant
+    variant?: ToastVariant
+    effect?: ToastEffect
     title?: string
     duration?: number
     action?: { label: string; onClick?: (event: React.MouseEvent) => void }
+    icon?: React.ReactNode | boolean
+    progress?: boolean
+    pauseOnHover?: boolean
+    closable?: boolean
     onClose?: () => void
     className?: string
+    style?: React.CSSProperties
     children?: React.ReactNode
+    message?: React.ReactNode
 }
 export declare const Toast: React.FC<ToastProps>
 
@@ -699,14 +709,23 @@ export type ToastPosition =
 
 export interface ToastOptions {
     title?: string
-    variant?: AlertVariant
+    variant?: ToastVariant
+    effect?: ToastEffect
     duration?: number
     action?: { label: string; onClick?: (event: React.MouseEvent) => void }
+    icon?: React.ReactNode | boolean
+    progress?: boolean
+    pauseOnHover?: boolean
+    closable?: boolean
+    className?: string
+    style?: React.CSSProperties
 }
 export interface ToastPromiseOptions<T> {
     loading?: React.ReactNode
     success?: React.ReactNode | ((data: T) => React.ReactNode)
     error?: React.ReactNode | ((err: any) => React.ReactNode)
+    duration?: number
+    effect?: ToastEffect
 }
 export interface ToastContextActions {
     toast: (message: React.ReactNode, options?: ToastOptions) => number
@@ -714,6 +733,7 @@ export interface ToastContextActions {
     error: (message: React.ReactNode, options?: ToastOptions) => number
     warning: (message: React.ReactNode, options?: ToastOptions) => number
     info: (message: React.ReactNode, options?: ToastOptions) => number
+    loading: (message: React.ReactNode, options?: ToastOptions) => number
     dismiss: (id: number) => void
     dismissAll: () => void
     promise: <T>(prom: Promise<T> | (() => Promise<T>), msgs?: ToastPromiseOptions<T>) => Promise<T>
@@ -725,6 +745,10 @@ export interface ToastProviderProps {
     position?: ToastPosition
     limit?: number
     duration?: number
+    effect?: ToastEffect
+    progress?: boolean
+    pauseOnHover?: boolean
+    closable?: boolean
 }
 export declare const ToastProvider: React.FC<ToastProviderProps>
 

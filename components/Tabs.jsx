@@ -36,7 +36,16 @@ export const Tabs = ({
 const tabSizes = {
     sm: 'text-xs px-2.5 py-1.5 min-h-[32px]',
     md: 'text-sm px-4 py-2 min-h-[40px]',
-    lg: 'text-base px-5 py-2.5 min-h-[48px]'
+    lg: 'text-base px-5 py-2.5 min-h-[48px]',
+    small: 'text-xs px-2.5 py-1.5 min-h-[32px]',
+    medium: 'text-sm px-4 py-2 min-h-[40px]',
+    large: 'text-base px-5 py-2.5 min-h-[48px]'
+}
+
+const getTabSizeClass = (sz) => {
+    if (!sz) return tabSizes.md
+    const key = typeof sz === 'string' ? sz.toLowerCase() : sz
+    return tabSizes[key] || tabSizes.md
 }
 
 const listVariants = {
@@ -127,7 +136,7 @@ Tabs.Tab = ({
             aria-selected={isActive}
             disabled={disabled}
             onClick={() => handleSelect(value)}
-            className={`${baseClasses} ${tabSizes[size] || tabSizes.md} ${variantClasses} ${className}`}
+            className={`${baseClasses} ${getTabSizeClass(size)} ${variantClasses} ${className}`}
         >
             {icon && <span className="mr-2 inline-flex items-center">{icon}</span>}
             <span>{children}</span>

@@ -22,7 +22,15 @@ export const Rate = ({
 
     const currentValue = isControlled ? controlledValue : innerValue
     const activeValue = hoverValue !== null ? hoverValue : currentValue
-    const iconSize = { sm: 16, md: 20, lg: 28 }[size] || 20
+    const normSize = typeof size === 'string' ? size.toLowerCase() : size
+    const iconSize = {
+        sm: 16,
+        md: 20,
+        lg: 28,
+        small: 16,
+        medium: 20,
+        large: 28
+    }[normSize] || 20
 
     const handleClick = (val) => {
         if (disabled || readOnly) return

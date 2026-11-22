@@ -100,6 +100,44 @@ export const CheckRoundedIcon = (props) => (
     </SvgIcon>
 )
 
+export const CheckCircleRoundedIcon = (props) => (
+    <SvgIcon {...props}>
+        <circle cx="12" cy="12" r="9" />
+        <polyline points="8.5 12 11 14.5 15.5 9.5" />
+    </SvgIcon>
+)
+
+export const AlertCircleRoundedIcon = (props) => (
+    <SvgIcon {...props}>
+        <circle cx="12" cy="12" r="9" />
+        <line x1="12" y1="8" x2="12" y2="12.5" />
+        <line x1="12" y1="15.5" x2="12.01" y2="15.5" strokeWidth={3} strokeLinecap="round" />
+    </SvgIcon>
+)
+
+export const AlertTriangleRoundedIcon = (props) => (
+    <SvgIcon {...props}>
+        <path d="m10.29 3.86-8.29 14.39A2 2 0 0 0 3.73 21h16.54a2 2 0 0 0 1.73-2.75L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13.5" />
+        <line x1="12" y1="17" x2="12.01" y2="17" strokeWidth={3} strokeLinecap="round" />
+    </SvgIcon>
+)
+
+export const InfoCircleRoundedIcon = (props) => (
+    <SvgIcon {...props}>
+        <circle cx="12" cy="12" r="9" />
+        <line x1="12" y1="8" x2="12.01" y2="8" strokeWidth={3} strokeLinecap="round" />
+        <line x1="12" y1="11" x2="12" y2="16" />
+    </SvgIcon>
+)
+
+export const SpinnerRoundedIcon = ({ className = '', ...props }) => (
+    <SvgIcon className={`animate-spin ${className}`} {...props}>
+        <circle cx="12" cy="12" r="9" strokeOpacity="0.25" />
+        <path d="M12 3a9 9 0 0 1 9 9" />
+    </SvgIcon>
+)
+
 export const EyeRoundedIcon = (props) => (
     <SvgIcon {...props}>
         <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" />

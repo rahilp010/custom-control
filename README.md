@@ -11,8 +11,9 @@
 
 - 🌗 **Dark & Light Themes** out of the box (`theme="dark" | "light" | "system"`)
 - 🎨 **Custom Color Palette** — customize the accent or surface palette using hex, RGB, or CSS variables
+- 🍞 **Customizable Toast Notifications** — frosted glass effect, vibrant colorful UI, gradients, countdown progress timers, pause-on-hover, and Promise lifecycle tracking with Framer Motion spring physics
 - 📋 **HTML Form & Server Actions Ready** — native `name` prop and hidden inputs for effortless FormData extraction
-- 📏 **Universal Size Prop** — uniform `'sm' | 'md' | 'lg'` scaling across all inputs, pickers, and buttons
+- 📏 **Universal Size Scaling** — uniform `'sm' | 'md' | 'lg'` (with `'small' | 'medium' | 'large'` aliases) consistent across all inputs, pickers, tags, badges, and buttons
 - 🪶 **Zero CSS Reset Conflicts** — clean, scoped CSS variable tokens with no forced global resets
 - ♿ **Full Keyboard Accessibility** — complete arrow navigation, Escape to close, Enter to select (rsuite standard)
 - 📦 **TypeScript Support** — bundled `.d.ts` declarations with full autocomplete
@@ -2032,7 +2033,17 @@ function Example() {
 
 ### Toast & ToastProvider
 
-Timed notification toast system with interactive action buttons (`action`), promise tracking (`promise`), and imperative hook helpers (`useToast`).
+High-performance, fully customizable notification system powered by **Framer Motion** spring physics. Features **Frosted Glassmorphism**, **Vibrant Colorful (Solid)**, and **Multi-tone Gradient** visual styles, animated countdown progress bars, pause-on-hover timers, variant icons with optical alignment, and automatic Promise lifecycle tracking.
+
+#### Toast Visual Effects
+
+| Effect | Description |
+| :--- | :--- |
+| `glass` *(default)* | Modern frosted glass with `backdrop-blur-xl`, translucent refraction borders, subtle ambient glow, and tinted icon badges. |
+| `colorful` | Saturated, high-contrast solid backgrounds (emerald, rose, amber, blue) with crisp white typography. |
+| `gradient` | Rich multi-tone gradients (e.g., emerald to teal, rose to pink, amber to orange) with white typography. |
+| `outline` | Colored border accent on a clean surface background. |
+| `default` | Classic subtle left-accent border with surface background. |
 
 #### How to Use
 
@@ -2040,35 +2051,70 @@ Timed notification toast system with interactive action buttons (`action`), prom
 import { ToastProvider, useToast, Button } from '@rahilp010/custom-control'
 
 function ToastTrigger() {
-  const { success, error, promise } = useToast()
+  const { toast, success, error, warning, info, loading, promise, dismissAll } = useToast()
 
+  // 1. Frosted Glass (Default)
+  const showGlassToast = () => {
+    success('Deployment complete and live on global CDN!', {
+      title: 'Deployment Live',
+      effect: 'glass'
+    })
+  }
+
+  // 2. Vibrant Colorful UI
+  const showColorfulToast = () => {
+    error('Could not authenticate user token.', {
+      title: 'Authentication Error',
+      effect: 'colorful'
+    })
+  }
+
+  // 3. Multi-tone Gradient with Action Button
+  const showGradientToast = () => {
+    warning('Storage limit reached 85%.', {
+      title: 'Storage Warning',
+      effect: 'gradient',
+      action: {
+        label: 'Upgrade Plan',
+        onClick: () => alert('Navigating to billing...')
+      }
+    })
+  }
+
+  // 4. Automatic Promise Tracking
   const handleSave = () => {
-    // Automatically handles pending -> success/error states!
     promise(
-      fetch('/api/save', { method: 'POST' }),
+      fetch('/api/sync', { method: 'POST' }),
       {
-        loading: 'Saving profile...',
-        success: 'Profile saved successfully!',
-        error: 'Failed to update profile.'
+        loading: 'Syncing database...',
+        success: 'All records synced successfully!',
+        error: 'Failed to sync with remote host.',
+        effect: 'glass'
       }
     )
   }
 
   return (
-    <div className="flex gap-2">
-      <Button onClick={handleSave}>Save with Promise Toast</Button>
-      <Button onClick={() => success('Item archived', {
-        action: { label: 'Undo', onClick: () => alert('Undo clicked') }
-      })}>
-        Toast with Action
-      </Button>
+    <div className="flex flex-wrap gap-2">
+      <Button onClick={showGlassToast}>Glass Toast</Button>
+      <Button variant="danger" onClick={showColorfulToast}>Colorful Error</Button>
+      <Button variant="outline" onClick={showGradientToast}>Gradient with Action</Button>
+      <Button variant="primary" onClick={handleSave}>Promise Toast</Button>
+      <Button variant="ghost" onClick={dismissAll}>Dismiss All</Button>
     </div>
   )
 }
 
 export default function App() {
   return (
-    <ToastProvider position="top-right" duration={4000}>
+    {/* Global Toast Provider with customizable effect, position, and progress */}
+    <ToastProvider
+      position="top-right"
+      effect="glass"
+      duration={4000}
+      progress={true}
+      pauseOnHover={true}
+    >
       <ToastTrigger />
     </ToastProvider>
   )
@@ -2079,20 +2125,43 @@ export default function App() {
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
+| `effect` | `'glass' \| 'colorful' \| 'gradient' \| 'outline' \| 'default'` | `'glass'` | Default visual effect applied to all toasts. |
 | `position` | `'top-left' \| 'top-center' \| 'top-right' \| 'bottom-left' \| 'bottom-center' \| 'bottom-right'` | `'top-right'` | Screen position for floating toasts. |
 | `duration` | `number` | `5000` | Default auto-dismiss timeout (ms). Pass `0` for sticky toasts. |
+| `progress` | `boolean` | `true` | Show an animated countdown progress bar along the bottom edge. |
+| `pauseOnHover` | `boolean` | `true` | Freeze timer and progress countdown while hovering over the toast. |
+| `closable` | `boolean` | `true` | Whether toasts display a close button (`×`). |
 | `limit` | `number` | `5` | Maximum number of toasts displayed concurrently. |
+
+#### Toast Options (`useToast()` & `<Toast />`)
+
+Every method on `useToast()` accepts an optional `ToastOptions` object:
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `title` | `string` | `undefined` | Bold title header for the toast. |
+| `variant` | `'info' \| 'success' \| 'warning' \| 'error' \| 'loading'` | `'info'` | Color and icon status variant. |
+| `effect` | `'glass' \| 'colorful' \| 'gradient' \| 'outline' \| 'default'` | Provider's effect | Override visual styling for this specific toast. |
+| `duration` | `number` | Provider's duration | Auto-dismiss timeout in ms (`0` for persistent). |
+| `progress` | `boolean` | `true` | Show/hide the animated countdown progress bar. |
+| `pauseOnHover` | `boolean` | `true` | Pause dismiss timer when hovered. |
+| `closable` | `boolean` | `true` | Show/hide the close button. |
+| `icon` | `ReactNode \| boolean` | Variant icon | Custom icon element, or `false` to hide icon. |
+| `action` | `{ label: string, onClick?: (e) => void }` | `undefined` | Action button rendered below the message. |
+| `className` | `string` | `''` | Custom CSS classes applied to toast container. |
+| `style` | `CSSProperties` | `{}` | Inline styles for container overrides. |
 
 #### useToast() API Methods
 
 | Method | Parameters | Description |
 | :--- | :--- | :--- |
-| `promise(prom, msgs)` | `prom: Promise \| (() => Promise), msgs: { loading, success, error }` | Tracks an async Promise, rendering loading -> success / error toast seamlessly. |
-| `success(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers a green success notification. |
-| `error(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers a red error notification. |
-| `warning(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers an amber warning notification. |
-| `info(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers a blue info notification. |
-| `toast(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers generic toast with custom options (`action`, `duration`, etc.). |
+| `promise(prom, msgs)` | `prom: Promise \| (() => Promise), msgs: { loading, success, error, duration?, effect? }` | Tracks an async Promise with animated spinner -> success / error transitions. |
+| `success(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers a green/emerald success notification. |
+| `error(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers a red/rose error notification. |
+| `warning(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers an amber/orange warning notification. |
+| `info(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers a blue/indigo info notification. |
+| `loading(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers a persistent loading notification with spinning icon. |
+| `toast(message, options?)` | `message: ReactNode, options?: ToastOptions` | Triggers generic toast with custom options (`effect`, `action`, etc.). |
 | `dismiss(id)` | `id: number` | Dismisses a specific toast by its ID. |
 | `dismissAll()` | none | Dismisses all active toasts immediately. |
 
